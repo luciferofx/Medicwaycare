@@ -1,350 +1,251 @@
-import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
-import {
-  FaChevronLeft,
-  FaChevronRight,
-  FaMapMarkerAlt,
-  FaQuoteLeft,
-  FaStar,
-  FaStethoscope,
-} from "react-icons/fa";
-import url_prefix from "../../data/variable";
-import "./PatientOpinions.css";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { FaChevronLeft, FaChevronRight, FaQuoteLeft, FaStar } from "react-icons/fa";
+import { Sparkles, MapPin, Activity, Brain, CheckCircle2 } from "lucide-react";
 
 const STATIC_OPINIONS = [
   {
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-    name: "Anita Sharma",
-    rating: 5,
-    text:
-      "The care and attention I received were exceptional. The doctors explained everything patiently and made me feel confident throughout my treatment.",
-    location: "Delhi, India",
-    treatment: "Cardiology",
-  },
-  {
     image: "https://randomuser.me/api/portraits/men/32.jpg",
-    name: "Rahul Verma",
-    rating: 4,
-    text:
-      "From consultation to recovery, the entire experience was smooth and reassuring. Highly professional medical staff.",
-    location: "Mumbai, India",
-    treatment: "Orthopedics",
+    name: "Aarav Sharma",
+    text: "The clinical therapy path at MedicwayCare was a sanctuary for my mental health. Navigating severe anxiety in the corporate world of Delhi was tough, but their CBT specialists provided the evidence-based tools I needed for a sustainable recovery.",
+    location: "New Delhi, India",
+    treatment: "Anxiety & Corporate Wellness",
   },
   {
-    image: "https://randomuser.me/api/portraits/women/68.jpg",
-    name: "Priya Nair",
-    rating: 5,
-    text:
-      "I was impressed by the cleanliness, technology, and compassionate care. I felt safe and well looked after.",
-    location: "Bengaluru, India",
-    treatment: "Neurology",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200",
+    name: "Ananya Iyer",
+    text: "I was skeptical about trauma recovery, but the compassionate approach of the team in Chennai changed my life. The personalized mindfulness protocols helped me reconnect with myself in ways I never thought possible.",
+    location: "Chennai, India",
+    treatment: "Post-Traumatic Recovery",
   },
+  {
+    image: "https://randomuser.me/api/portraits/men/45.jpg",
+    name: "Dr. Sameer Varma",
+    text: "As a medical professional, I value clinical precision. Their approach to depression management combines traditional therapy with modern neuro-wellness techniques. Truly a benchmark for mental healthcare in Mumbai.",
+    location: "Mumbai, India",
+    treatment: "Clinical Depression Path",
+  },
+  {
+    image: "https://randomuser.me/api/portraits/women/44.jpg",
+    name: "Neha Gupta",
+    text: "The clinical support team guided me through every step of cognitive behavioral therapy. My panic attacks have significantly reduced, and I feel like I'm finally in control of my life again.",
+    location: "Bengaluru, India",
+    treatment: "Cognitive Behavioral Therapy",
+  },
+  {
+    image: "https://randomuser.me/api/portraits/men/68.jpg",
+    name: "Rahul Verma",
+    text: "Finding a compassionate clinical psychologist in Pune was challenging. MedicwayCare connected me with a specialist who understood my specific needs without judgment.",
+    location: "Pune, India",
+    treatment: "Stress & Anger Management",
+  }
 ];
 
+const sliderVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? 100 : -100,
+    opacity: 0,
+    scale: 0.95,
+    filter: "blur(10px)",
+  }),
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: {
+      x: { type: "spring", stiffness: 300, damping: 30 },
+      opacity: { duration: 0.5 },
+      scale: { duration: 0.5 },
+      filter: { duration: 0.5 }
+    }
+  },
+  exit: (direction) => ({
+    zIndex: 0,
+    x: direction > 0 ? -100 : 100,
+    opacity: 0,
+    scale: 0.95,
+    filter: "blur(10px)",
+    transition: {
+      x: { type: "spring", stiffness: 300, damping: 30 },
+      opacity: { duration: 0.4 },
+      scale: { duration: 0.4 },
+      filter: { duration: 0.4 }
+    }
+  })
+};
 
 const PatientOpinions = () => {
-  // 🔹 Static headings (no language dependency)
-  const [headings] = useState({
-    heading: "Stories of Healing & Hope",
-    subheading:
-      "Discover what our patients have to say about their healthcare journey with us",
+  const [[page, direction], setPage] = useState([0, 0]);
+  const containerRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
   });
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  // const [opinions, setOpinions] = useState([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
+  const particleY = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
 
+  const opinionIndex = Math.abs(page % STATIC_OPINIONS.length);
+  const currentOpinion = STATIC_OPINIONS[opinionIndex];
 
-  const [opinions] = useState(STATIC_OPINIONS);
-const [loading] = useState(false);
-const [error] = useState(null);
-
-  // Fetch opinions only
-  // useEffect(() => {
-  //   const fetchOpinions = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         `${url_prefix}/patient-opinions`
-  //       );
-
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! Status: ${response.status}`);
-  //       }
-
-  //       const result = await response.json();
-
-  //       if (!result.success || !Array.isArray(result.data)) {
-  //         throw new Error("Invalid API response structure");
-  //       }
-
-  //       setOpinions(result.data);
-  //       setError(null);
-  //     } catch (err) {
-  //       console.error("Fetch error:", err);
-  //       setError(err.message);
-  //       setOpinions([]);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchOpinions();
-  // }, []);
-
-  const nextOpinion = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === opinions.length - 1 ? 0 : prevIndex + 1
-    );
+  const paginate = (newDirection) => {
+    setPage([page + newDirection, newDirection]);
   };
 
-  const prevOpinion = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? opinions.length - 1 : prevIndex - 1
-    );
-  };
-
-  const goToOpinion = (index) => {
-    setCurrentIndex(index);
-  };
-
-  // Auto-advance carousel
   useEffect(() => {
-    if (opinions.length > 0) {
-      const interval = setInterval(nextOpinion, 6000);
-      return () => clearInterval(interval);
-    }
-  }, [currentIndex, opinions.length]);
+    const interval = setInterval(() => {
+      paginate(1);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [page]);
 
-  /* ===========================
-      LOADING STATE
-  ============================ */
-  // if (loading) {
-  //   return (
-  //     <section className="patient-opinions-section bg-sectiondiv py-16 relative overflow-hidden">
-  //       <div className="container mx-auto px-4 relative z-10">
-  //         <div className="text-center mb-12">
-  //           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-main">
-  //             {/* Stories of <span className="text-teal-600">Healing</span> &{" "}
-  //             <span className="text-teal-600">Hope</span> */}
-  //             {headings.heading}
-  //           </h2>
-  //           <p className="text-lg text-main max-w-2xl mx-auto">
-  //             {/* Discover what our patients have to say about their healthcare journey with us */}
-  //             {headings.subheading}
-  //           </p>
-  //         </div>
-
-  //         <div className="flex justify-center items-center h-64">
-  //           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
-  //         </div>
-  //       </div>
-  //     </section>
-  //   );
-  // }
-
-  /* ===========================
-      ERROR STATE
-  ============================ */
-  // if (error) {
-  //   return (
-  //     <section className="patient-opinions-section bg-sectiondiv py-16 relative overflow-hidden">
-  //       <div className="container mx-auto px-4 relative z-10 text-center">
-  //         <p className="text-red-600">
-  //           Error loading patient opinions: {error}
-  //         </p>
-  //       </div>
-  //     </section>
-  //   );
-  // }
-
-  /* ===========================
-      NO DATA STATE
-  ============================ */
-  // if (opinions.length === 0) {
-  //   return (
-  //     <section className="patient-opinions-section bg-sectiondiv py-16 relative overflow-hidden">
-  //       <div className="container mx-auto px-4 relative z-10 text-center">
-  //         <p className="text-gray-500">No patient opinions found.</p>
-  //       </div>
-  //     </section>
-  //   );
-  // }
-
-  /* ===========================
-      MAIN UI (UNCHANGED)
-  ============================ */
   return (
-    <section className="patient-opinions-section bg-sectiondiv py-16 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-10 left-10 w-24 h-24 rounded-full bg-blue-100/30"></div>
-      <div className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-indigo-100/30"></div>
-      <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full bg-blue-200/20"></div>
+    <section ref={containerRef} className="relative py-32 bg-[#0a192f] overflow-hidden">
+      {/* ── CINEMATIC BACKGROUND ── */}
+      <motion.div style={{ y: particleY }} className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-10 left-[10%] text-blue-500/10"><Activity size={200} /></div>
+        <div className="absolute bottom-20 right-[15%] text-cyan-500/5 rotate-12"><Brain size={300} /></div>
+        <div className="absolute top-[20%] right-[25%] w-2 h-2 bg-blue-400/40 rounded-full shadow-[0_0_15px_rgba(96,165,250,1)] animate-ping" />
+        <div className="absolute bottom-[25%] left-[20%] w-3 h-3 bg-cyan-400/30 rounded-full shadow-[0_0_20px_rgba(34,211,238,1)] animate-pulse" />
+      </motion.div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-            {/* Stories of <span className="text-teal-600">Healing</span> &{" "}
-            <span className="text-teal-600">Hope</span> */}
-            {headings.heading}
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {/* Discover what our patients have to say about their healthcare journey with us */}
-            {headings.subheading}
-          </p>
-        </motion.div>
+      <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
 
-        <div className="max-w-5xl mx-auto relative">
-          {/* Navigation Arrows */}
-          <motion.button
-            onClick={prevOpinion}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 md:-translate-x-8 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-blue-50 transition-all duration-300 border border-blue-100"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Previous testimonial"
+      <div className="container mx-auto px-6 relative z-10 max-w-7xl">
+        
+        {/* Header */}
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-[#0a2a55]/50 border border-blue-400/20 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-6 backdrop-blur-xl"
           >
-            <FaChevronLeft className="text-teal-600 text-lg" />
-          </motion.button>
-
-          <motion.button
-            onClick={nextOpinion}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 md:translate-x-8 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-blue-50 transition-all duration-300 border border-blue-100"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Next testimonial"
+            <Sparkles size={14} className="animate-pulse" />
+            Voices of Resilience
+          </motion.div>
+          
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-tight tracking-tighter mb-6"
           >
-            <FaChevronRight className="text-teal-600 text-lg" />
-          </motion.button>
-
-          {/* Testimonial Carousel */}
-          <div className="overflow-hidden relative">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-blue-100/50"
-              >
-                <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                  {/* Patient Image */}
-                  <motion.div
-                    className="flex-shrink-0"
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                  >
-                    <div className="relative">
-                      <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                        <img
-                          src={opinions[currentIndex]?.image}
-                          alt={opinions[currentIndex].name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white p-2 rounded-full">
-                        <FaQuoteLeft className="text-sm" />
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Testimonial Content */}
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="mb-6">
-                      {/* Star Rating */}
-                      <div className="flex justify-center md:justify-start gap-1 mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{
-                              delay: i * 0.1,
-                              type: "spring",
-                              stiffness: 300,
-                            }}
-                          >
-                            <FaStar
-                              className={
-                                i < opinions[currentIndex].rating
-                                  ? "text-yellow-400"
-                                  : "text-gray-300"
-                              }
-                              size={20}
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      <p className="text-gray-700 text-lg italic mb-6 relative">
-                        <FaQuoteLeft className="text-blue-200 text-3xl absolute -left-8 -top-2" />
-                        {opinions[currentIndex].text}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold text-xl text-gray-800 mb-2">
-                        {opinions[currentIndex].name}
-                      </h3>
-
-                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-gray-600 text-sm">
-                        <div className="flex items-center justify-center md:justify-start">
-                          <FaMapMarkerAlt className="text-blue-400 mr-2" />
-                          <span>{opinions[currentIndex].location}</span>
-                        </div>
-
-                        <div className="flex items-center justify-center md:justify-start">
-                          <FaStethoscope className="text-blue-400 mr-2" />
-                          <span>{opinions[currentIndex].treatment}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Indicator Dots */}
-          <div className="flex justify-center mt-8 gap-2">
-            {opinions.map((_, index) => (
-              <motion.button
-                key={index}
-                onClick={() => goToOpinion(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex
-                  ? "bg-teal-600"
-                  : "bg-gray-300 hover:bg-blue-400"
-                  }`}
-                whileHover={{ scale: 1.3 }}
-                aria-label={`Go to testimonial ${index + 1}`}
-              />
-            ))}
-          </div>
+            Clinical Journeys <br />
+            To <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Recovery</span>
+          </motion.h2>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-lg text-blue-100/40 max-w-2xl mx-auto font-medium"
+          >
+            Real accounts from individuals who reclaimed their mental well-being with our network of specialized clinicians.
+          </motion.p>
         </div>
 
-        {/* Decorative bottom element */}
-        <motion.div
-          className="flex justify-center mt-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          <div className="flex items-center text-sm text-gray-500">
-            <div className="h-px w-16 bg-gray-300 mr-3"></div>
-            <span>Trusted by patients worldwide</span>
-            <div className="h-px w-16 bg-gray-300 ml-3"></div>
-          </div>
-        </motion.div>
+        {/* ── CINEMATIC SLIDER ── */}
+        <div className="relative h-[650px] sm:h-[500px] lg:h-[450px] w-full max-w-5xl mx-auto flex items-center justify-center perspective-[1000px]">
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={page}
+              custom={direction}
+              variants={sliderVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="absolute w-full h-full bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col md:flex-row group"
+            >
+              {/* Image Section */}
+              <div className="w-full md:w-5/12 h-64 md:h-full relative overflow-hidden flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#0a192f] via-transparent to-transparent z-10 opacity-60" />
+                <motion.img
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 10, ease: "easeOut" }}
+                  src={currentOpinion.image}
+                  alt={currentOpinion.name}
+                  className="w-full h-full object-cover filter grayscale-[50%] group-hover:grayscale-0 transition-all duration-700"
+                />
+                <div className="absolute bottom-6 left-6 z-20 flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className="text-amber-400 drop-shadow-[0_0_5px_rgba(251,191,36,0.5)]" size={16} />
+                  ))}
+                </div>
+              </div>
 
-        {/* 🔥 REST OF COMPONENT REMAINS EXACTLY SAME 🔥 */}
-        {/* Carousel, arrows, animations, dots – untouched */}
-        {/* (No UI or structure change below this point) */}
+              {/* Content Section */}
+              <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center relative">
+                {/* Large Background Quote mark */}
+                <FaQuoteLeft className="absolute top-8 right-8 text-white/5 text-8xl pointer-events-none" />
+                
+                <h3 className="text-2xl md:text-3xl font-['Lora',serif] font-medium text-white italic leading-relaxed mb-10 tracking-wide">
+                  "{currentOpinion.text}"
+                </h3>
+
+                <div className="mt-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                  <div>
+                    <h4 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                       {currentOpinion.name}
+                       <CheckCircle2 size={16} className="text-cyan-400" />
+                    </h4>
+                    <p className="text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-1">
+                      {currentOpinion.treatment}
+                    </p>
+                    <p className="text-slate-400 text-sm flex items-center gap-1">
+                      <MapPin size={14} /> {currentOpinion.location}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* ── CONTROLS ── */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mt-16 relative z-20">
+           {/* Dots */}
+           <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-6 py-4 rounded-full border border-white/10">
+             {STATIC_OPINIONS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                     setPage([i, i > opinionIndex ? 1 : -1]);
+                  }}
+                  className={`h-1.5 transition-all duration-500 rounded-full ${
+                    i === opinionIndex 
+                      ? "w-8 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]" 
+                      : "w-2 bg-white/20 hover:bg-white/40"
+                  }`}
+                />
+             ))}
+           </div>
+           
+           {/* Arrows */}
+           <div className="flex gap-4">
+              <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => paginate(-1)}
+                className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white backdrop-blur-md transition-all"
+              >
+                <FaChevronLeft />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => paginate(1)}
+                className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white backdrop-blur-md transition-all"
+              >
+                <FaChevronRight />
+              </motion.button>
+           </div>
+        </div>
       </div>
     </section>
   );

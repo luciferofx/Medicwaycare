@@ -1,103 +1,108 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity } from 'lucide-react';
+import { Activity, Sparkles, Brain } from 'lucide-react';
 
 const Preloader = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    // Standard loading delay to ensure smooth transition
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, 2500); // Increased slightly to enjoy the animation
+    }, 2800);
     return () => clearTimeout(timer);
   }, []);
-
-  // ECG Heartbeat line path
-  const ecgPath = "M0 50 L20 50 L25 40 L30 60 L35 10 L40 90 L45 50 L60 50 L65 45 L70 55 L75 50 L100 50";
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          key="preloader"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0E3F6D] overflow-hidden"
+          exit={{ opacity: 0, filter: "blur(10px)", scale: 1.05 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#0a192f] overflow-hidden"
         >
-          {/* subtle background pattern */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
+          {/* ── CINEMATIC BACKGROUND ── */}
+          <div className="absolute inset-0 pointer-events-none">
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[150px] mix-blend-screen" />
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-cyan-400/5 rounded-full blur-[100px] mix-blend-screen" />
           </div>
 
-          <div className="relative flex flex-col items-center">
-            {/* Pulsing Heartbeat Icon */}
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.7, 1, 0.7]
-              }}
-              transition={{
-                duration: 0.8,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="mb-6 text-[#72BF44]"
-            >
-              <Activity size={48} />
-            </motion.div>
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            
+            {/* Pulsing Clinical Icon Assembly */}
+            <div className="relative mb-8 flex items-center justify-center">
+               <motion.div
+                 animate={{ scale: [1, 2.5], opacity: [0.5, 0] }}
+                 transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                 className="absolute w-24 h-24 rounded-full border border-cyan-400/30"
+               />
+               <motion.div
+                 animate={{ scale: [1, 2], opacity: [0.8, 0] }}
+                 transition={{ duration: 2, delay: 0.3, repeat: Infinity, ease: "easeOut" }}
+                 className="absolute w-24 h-24 rounded-full border border-blue-500/20"
+               />
+               
+               <div className="relative w-24 h-24 bg-gradient-to-tr from-[#0a2a55] to-[#1e3a8a] rounded-3xl border border-white/10 shadow-[0_0_40px_rgba(34,211,238,0.2)] flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-30deg] animate-[shine_2s_ease-out_infinite]" />
+                  <Brain strokeWidth={1} className="w-12 h-12 text-cyan-400" />
+                  <Activity className="absolute bottom-2 right-2 w-5 h-5 text-blue-300 opacity-50" />
+               </div>
+            </div>
 
-            {/* Pulsing Text */}
+            {/* Typography */}
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{
-                y: 0,
-                opacity: 1,
-                scale: [1, 1.02, 1]
-              }}
-              transition={{
-                opacity: { duration: 0.5 },
-                scale: { duration: 0.8, repeat: Infinity, ease: "easeInOut" }
-              }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="text-center"
             >
-              <h1 className="text-4xl md:text-6xl font-bold text-white tracking-[0.2em] uppercase">
-                MedicwayCare
-              </h1>
-              <p className="text-[#72BF44] text-xs font-semibold tracking-[0.5em] mt-2 opacity-80 uppercase">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                 <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+                 <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 tracking-tighter">
+                   MedicwayCare
+                 </h1>
+              </div>
+              
+              <motion.div 
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "100%" }}
+                transition={{ duration: 1.5, delay: 0.5, ease: "easeInOut" }}
+                className="h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto my-4 max-w-[200px]"
+              />
+
+              <p className="text-cyan-400/80 text-[10px] font-black tracking-[0.4em] uppercase">
                 Compassion In Every Beat
               </p>
             </motion.div>
 
-            {/* Animated ECG Line */}
-            <div className="mt-12 w-64 h-20 overflow-hidden relative">
-              <svg
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-                className="w-full h-full stroke-[#72BF44] stroke-[2] fill-none opacity-40"
-              >
-                <motion.path
-                  d={ecgPath}
-                  initial={{ pathLength: 0, x: -100 }}
-                  animate={{
-                    pathLength: [0, 1, 1],
-                    x: ["-100%", "0%", "100%"]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                />
-              </svg>
-            </div>
-          </div>
+            {/* Premium Loading Bar */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="mt-12 w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5"
+            >
+               <motion.div
+                 initial={{ x: "-100%" }}
+                 animate={{ x: "0%" }}
+                 transition={{ duration: 2, ease: "circOut" }}
+                 className="w-full h-full bg-gradient-to-r from-blue-600 to-cyan-400 relative"
+               >
+                  <div className="absolute top-0 right-0 w-8 h-full bg-white/40 blur-[2px]" />
+               </motion.div>
+            </motion.div>
 
-          {/* Scanner Light Effect */}
-          <motion.div
-            animate={{ y: ['-100%', '100%'], opacity: [0, 0.1, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-0 bg-gradient-to-b from-transparent via-[#72BF44] to-transparent h-1/2 w-full"
-          />
+            <motion.div
+               animate={{ opacity: [0.3, 1, 0.3] }}
+               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+               className="mt-4 text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+            >
+               Initializing Protocol...
+            </motion.div>
+          </div>
+          
         </motion.div>
       )}
     </AnimatePresence>

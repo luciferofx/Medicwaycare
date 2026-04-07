@@ -32,7 +32,7 @@ const BlogSection = () => {
       excerpt:
         "Small habits practiced daily can lead to a healthier and happier life. Here are 10 habits you should start today.",
       featuredImage:
-        "https://images.unsplash.com/photo-1506126613408-eca07ce68773",
+        "https://clinicalassociatesmd.com/wp-content/uploads/2025/09/side-view-patient-undergoing-physical-evaluation.webp",
       categories: ["Wellness"],
       readTime: 4,
       author: {
@@ -49,7 +49,7 @@ const BlogSection = () => {
       excerpt:
         "Preventive healthcare helps detect diseases early and improves long-term outcomes. Learn why it matters.",
       featuredImage:
-        "https://images.unsplash.com/photo-1580281658629-63a51a34b7b6",
+        "https://images.unsplash.com/photo-1576091160399-11cbbe4737aa?auto=format&fit=crop&q=80&w=600&h=400",
       categories: ["Healthcare"],
       readTime: 6,
       author: {
@@ -132,9 +132,9 @@ const BlogSection = () => {
         </div> */}
 
 
-             <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center" >
-              Latest Blog Posts
-            </h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center" >
+          Latest Blog Posts
+        </h2>
 
         {blogs.length === 0 ? (
           <div className="text-center py-12">

@@ -64,7 +64,7 @@ const DoctorForm = ({ open, onClose, onSubmit, initialValues }) => {
   const next = async () => {
     try {
       const fieldsToValidate = step === 0
-        ? ['name', 'categoryId', 'conteryId']
+        ? ['name']
         : [];
 
       if (fieldsToValidate.length > 0) {
@@ -169,14 +169,15 @@ const DoctorForm = ({ open, onClose, onSubmit, initialValues }) => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  label="Category"
+                  label="Category (Optional)"
                   name="categoryId"
-                  rules={[{ required: true, message: 'Please select category' }]}
+                  help="Leave empty to show in all categories"
                 >
                   <Select
                     loading={isLoading}
-                    placeholder="Select category"
+                    placeholder="Select category (or leave for all)"
                     onChange={handleCategoryChange}
+                    allowClear
                   >
                     {categories.map((cat) => (
                       <Select.Option key={cat._id} value={cat._id}>
@@ -188,11 +189,10 @@ const DoctorForm = ({ open, onClose, onSubmit, initialValues }) => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Country"
+                  label="Country (Optional)"
                   name="conteryId"
-                  rules={[{ required: true, message: 'Please select country' }]}
                 >
-                  <Select loading={isCountery} placeholder="Select country">
+                  <Select loading={isCountery} placeholder="Select country" allowClear>
                     {countery.map((country) => (
                       <Select.Option key={country._id} value={country._id}>
                         <span className="flex items-center gap-2">
@@ -331,7 +331,6 @@ const DoctorForm = ({ open, onClose, onSubmit, initialValues }) => {
                         <Form.Item
                           {...restField}
                           name={name}
-                          rules={[{ required: true, message: 'Please enter medical problem' }]}
                         >
                           <Input placeholder="e.g., Heart Disease, Hypertension" />
                         </Form.Item>
@@ -361,7 +360,6 @@ const DoctorForm = ({ open, onClose, onSubmit, initialValues }) => {
                         <Form.Item
                           {...restField}
                           name={name}
-                          rules={[{ required: true, message: 'Please enter medical procedure' }]}
                         >
                           <Input placeholder="e.g., Bypass Surgery, Angioplasty" />
                         </Form.Item>

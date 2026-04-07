@@ -45,7 +45,7 @@ export const hospitalApi = createApi({
     }),
 
 
-   
+
 
     //  DELETE HOSPITAL
     deleteHospital: builder.mutation({

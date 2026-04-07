@@ -1,203 +1,102 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { FaChevronDown, FaQuestionCircle } from "react-icons/fa";
+import { FaChevronDown, FaPlus, FaMinus } from "react-icons/fa";
+import { HelpCircle, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import url_prefix from "../../data/variable";
 import { useLanguage } from '../../hooks/useLanguage';
-import "./FAQ.css";
 
-// Static FAQ Data
 const staticFaqData = [
   {
     _id: "1",
-    question: "What services do you offer?",
-    answer: "We offer comprehensive medical treatment services including consultations, diagnostics, treatment planning, and post-treatment care coordination."
+    question: "What therapeutic approaches do you use?",
+    answer: "We specialize in evidence-based clinical psychology, including Cognitive Behavioral Therapy (CBT), Mindfulness-Based Stress Reduction (MBSR), and specialized trauma-informed care."
   },
   {
     _id: "2",
-    question: "How do I book an appointment?",
-    answer: "You can book an appointment through our website by clicking the 'Book Now' button, or by contacting our care coordinators directly via phone or email."
+    question: "How do I matched with a clinical psychologist?",
+    answer: "Our clinical intake team reviews your specific needs and matches you with a specialist who has the exact expertise required for your journey, from anxiety to complex trauma recovery."
   },
   {
     _id: "3",
-    question: "What are your operating hours?",
-    answer: "Our care coordinators are available 24/7 to assist you with any questions or concerns you may have about your medical journey."
+    question: "Are your sessions confidential?",
+    answer: "Absolutely. We adhere to the highest international standards of clinical confidentiality and data protection, ensuring a safe and secure therapeutic environment."
   },
   {
     _id: "4",
-    question: "Do you accept insurance?",
-    answer: "Yes, we accept most major insurance providers. Please contact us with your insurance details for verification and coverage information."
+    question: "Can I book a remote consultation?",
+    answer: "Yes, we offer high-definition, secure video consultations for patients worldwide, allowing you to access top-tier clinical care from the comfort of your sanctuary."
   },
   {
     _id: "5",
-    question: "How long does the treatment process take?",
-    answer: "Treatment duration varies depending on the specific procedure and individual circumstances. Our team will provide you with a detailed timeline during your consultation."
+    question: "What is the typical duration of a clinical path?",
+    answer: "While every journey is unique, our focus is on sustainable recovery. Your specialist will outline a personalized timeline during your initial clinical assessment."
   },
   {
     _id: "6",
-    question: "What should I bring to my first appointment?",
-    answer: "Please bring a valid ID, insurance information, list of current medications, and any relevant medical records or test results from previous treatments."
+    question: "Do you provide crisis support?",
+    answer: "Our care coordinators are available 24/7 to assist with logistical support and scheduling, ensuring you have a seamless connection to your clinical team when needed."
   }
 ];
 
 const FAQ = () => {
-
   const [activeIndex, setActiveIndex] = useState(null);
-  const [faqData, setFaqData] = useState(staticFaqData);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [faqData] = useState(staticFaqData);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [language] = useLanguage();
+  
+  const [headings, setHeadings] = useState({
+    heading: "Clinical Clarity",
+    subheading: "Everything you need to know about our therapeutic process and clinical standards.",
+    h1: 'Still Have Inquiries?',
+    h2: 'Our clinical care coordinators are available 24/7 to provide guidance on your mental wellness journey.',
+    h3: 'Speak with an Expert',
+    h4: 'Inquire via Message'
+  });
+
   const toggleFAQ = (index) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
-  const [language] = useLanguage();
-  const [headings, setHeadings] = useState({
-    heading: "Frequently Asked Questions",
-    subheading: "Find answers to common questions about our medical treatment process",
-    h1: 'Still have questions?',
-    h2: 'Our care coordinators are available 24/7 to answer any questions you may have about your medical journey.',
-    h3: 'Contact Us Now',
-    h4: 'Request a Call Back'
-  });
 
-
-  // Fetch headings from API (keeping this dynamic as per your code)
-  useEffect(() => {
-
-    if (!language) {
-      console.log('Language not yet available, skipping fetch');
-      return;
-    }
-
-    const fetchHeadings = async () => {
-      try {
-        const response = await fetch(
-          `${url_prefix}/headings/FAQs/${language}`
-        );
-        const result = await response.json();
-        if (result.success) {
-          console.log('reslut', result.data.detailPage.headings[0]['text'])
-          setHeadings({
-            heading: result.data.home[0]?.heading,
-            subheading:
-              result.data.home[0]?.description,
-            h1: result.data.detailPage?.headings[0]['text'],
-            h2: result.data.detailPage?.headings[1]['text'],
-            h3: result.data.detailPage?.headings[2]['text'],
-            h4: result.data.detailPage?.headings[3]['text']
-
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching headings:", error);
-        // Keep default headings if fetch fails
-      }
-    };
-
-    fetchHeadings();
-    console.log('heading', headings)
-    
-    // Set static FAQ data and loading to false
-    setFaqData(staticFaqData);
-    setLoading(false);
-  }, [language]);
-
-
-
-  // Split FAQ data into two columns
   const leftColumn = faqData.slice(0, Math.ceil(faqData.length / 2));
   const rightColumn = faqData.slice(Math.ceil(faqData.length / 2));
 
-  // Loading state
-  if (loading) {
-    return (
-      <section className="faq-section bg-gray-100 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <FaQuestionCircle className="text-teal-600 text-2xl" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-              Frequently Asked <span className="text-teal-600">Questions</span>
-            </h2>
-          </div>
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <section className="faq-section bg-gray-100 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-              Frequently Asked <span className="text-teal-600">Questions</span>
-            </h2>
-          </div>
-          <div className="text-center text-red-600 py-8">
-            <p>Error loading FAQs: {error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-md"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // No FAQs found
-  if (faqData.length === 0) {
-    return (
-      <section className="faq-section bg-gray-100 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-              {/* Frequently Asked <span className="text-teal-600">Questions</span> */}
-              {headings.heading}
-            </h2>
-          </div>
-          <div className="text-center text-gray-500 py-8">
-            <p>No FAQs found.</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="faq-section bg-gray-100 py-16 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-blue-100/30 rounded-full -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-40 h-40 bg-indigo-100/30 rounded-full translate-x-20 translate-y-20"></div>
+    <section className="relative py-24 bg-[#f8fafc] overflow-hidden">
+      {/* Decorative Accents */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/30 rounded-full blur-3xl -mr-64 -mt-64" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-slate-50/50 rounded-full blur-3xl -ml-64 -mb-64" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <FaQuestionCircle className="text-teal-600 text-2xl" />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-            {/* Frequently Asked <span className="text-teal-600">Questions</span> */}
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-600 font-bold text-xs uppercase tracking-widest mb-6"
+          >
+            <HelpCircle size={14} />
+            <span>Support Center</span>
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-black text-[#0a2a55] font-['Lora',serif] mb-6"
+          >
             {headings.heading}
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {/* Find answers to common questions about our medical treatment process */}
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-lg text-slate-500 max-w-2xl mx-auto font-medium"
+          >
             {headings.subheading}
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           {/* Left Column */}
@@ -227,32 +126,42 @@ const FAQ = () => {
           </div>
         </div>
 
-        {/* CTA Section */}
+        {/* Premium CTA Box */}
         <motion.div
-          className="text-center mt-12 bg-sectiondiv rounded-2xl p-8 border border-blue-100"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
+          className="mt-20 max-w-4xl mx-auto bg-white rounded-[3rem] p-10 md:p-14 shadow-2xl shadow-blue-900/5 border border-slate-100 relative overflow-hidden group"
         >
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-            {/* Still have questions? */}
-            {headings.h1}
-          </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            {/* Our care coordinators are available 24/7 to answer any questions you
-            may have about your medical journey. */}
-            {headings.h2}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-[#008080] hover:bg-[#006080] text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300" onClick={() => navigate('/book')}>
-              {/* Contact Us Now */}
-              {headings.h3}
-            </button>
-            <button className="border border-[#008080] text-[#008080] hover:bg-blue-50 font-medium py-3 px-6 rounded-lg transition-colors duration-300" onClick={() => navigate('/book')}>
-              {/* Request a Call Back */}
-              {headings.h4}
-            </button>
+          <div className="absolute top-0 right-0 p-8 text-blue-50 opacity-10 group-hover:opacity-20 transition-opacity">
+             <MessageSquare size={120} />
+          </div>
+          
+          <div className="relative z-10 text-center">
+            <h3 className="text-3xl font-black text-[#0a2a55] font-['Lora',serif] mb-6">
+              {headings.h1}
+            </h3>
+            <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto font-medium">
+              {headings.h2}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-[#0a2a55] text-white font-black uppercase tracking-widest text-xs py-5 px-10 rounded-2xl shadow-xl shadow-blue-900/20 active:shadow-none transition-all"
+                onClick={() => navigate('/book')}
+              >
+                {headings.h3}
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="border-2 border-[#0a2a55] text-[#0a2a55] font-black uppercase tracking-widest text-xs py-5 px-10 rounded-2xl hover:bg-[#0a2a55] hover:text-white transition-all"
+                onClick={() => navigate('/book')}
+              >
+                {headings.h4}
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -260,33 +169,30 @@ const FAQ = () => {
   );
 };
 
-// FAQ Item Component
 const FAQItem = ({ faq, index, isActive, onClick }) => {
-
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-sm overflow-hidden border border-blue-100"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
+      initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+      whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
+      transition={{ delay: index * 0.05 }}
+      className={`group cursor-pointer rounded-3xl transition-all duration-500 border ${
+        isActive 
+          ? "bg-white border-[#0a2a55] shadow-2xl shadow-blue-900/5 scale-[1.02]" 
+          : "bg-white border-slate-100 hover:border-slate-300"
+      }`}
+      onClick={onClick}
     >
-      <button
-        className="flex justify-between items-center w-full p-5 text-left focus:outline-none"
-        onClick={onClick}
-        aria-expanded={isActive}
-      >
-        <h3 className="text-lg font-semibold text-gray-800 pr-4">
+      <div className="flex justify-between items-center w-full p-6 text-left">
+        <h3 className={`text-lg font-bold transition-colors ${isActive ? "text-[#0a2a55]" : "text-slate-600"}`}>
           {faq.question}
         </h3>
-        <motion.div
-          animate={{ rotate: isActive ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex-shrink-0"
-        >
-          <FaChevronDown className="text-blue-500" />
-        </motion.div>
-      </button>
+        <div className={`flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+          isActive ? "bg-[#0a2a55] text-white rotate-180" : "bg-slate-50 text-slate-400 group-hover:bg-blue-50"
+        }`}>
+          {isActive ? <FaMinus size={12} /> : <FaPlus size={12} />}
+        </div>
+      </div>
 
       <AnimatePresence>
         {isActive && (
@@ -296,21 +202,19 @@ const FAQItem = ({ faq, index, isActive, onClick }) => {
               height: "auto",
               opacity: 1,
               transition: {
-                height: { duration: 0.3 },
-                opacity: { duration: 0.4, delay: 0.1 },
+                height: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: 0.3, delay: 0.1 },
               },
             }}
             exit={{
-              height: 0,
-              opacity: 0,
-              transition: {
-                height: { duration: 0.3 },
-                opacity: { duration: 0.2 },
-              },
+              height: 0, opacity: 0,
+              transition: { height: { duration: 0.3 } }
             }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 text-gray-600">{faq.answer}</div>
+            <div className="px-6 pb-6 text-slate-500 font-medium leading-relaxed border-t border-slate-50 pt-4 mt-2 mx-6">
+              {faq.answer}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -318,4 +222,4 @@ const FAQItem = ({ faq, index, isActive, onClick }) => {
   );
 };
 
-export default FAQ;
+export default FAQ;

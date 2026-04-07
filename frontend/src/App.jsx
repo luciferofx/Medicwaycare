@@ -51,12 +51,26 @@ import Host from "./pages/webrtc/Host";
 import Viewer from "./pages/webrtc/Viewer";
 import PsychiatricServicesDetails from "./pages/ClinicalPsychology";
 import Preloader from "./components/Preloader";
+import ScrollToTop from "./components/ScrollToTop";
+
+/* ===== CINEMATIC WRAPPER ===== */
+const PageTransition = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -15 }}
+    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+  >
+    {children}
+  </motion.div>
+);
 
 /* ===== LAYOUTS ===== */
 const PublicLayout = () => (
-  <div className="min-h-screen flex flex-col text-gray-800">
+  <div className="min-h-screen flex flex-col text-gray-800 bg-white">
     <Header />
     <main className="flex-grow">
+      {/* Outlet is inside App.jsx's AnimatePresence logic */}
       <Outlet />
     </main>
     <Footer />
@@ -69,7 +83,7 @@ export default function App() {
   const location = useLocation();
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000);
+    const timer = setTimeout(() => setLoading(false), 1500); // Faster clinical preloader
     return () => clearTimeout(timer);
   }, []);
 
@@ -77,86 +91,84 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <ScrollToTop />
       <Toaster
         position="top-right"
         reverseOrder={false}
         toastOptions={{
           duration: 3000,
           style: {
-            fontFamily: "Poppins",
+            fontFamily: "Inter, sans-serif",
             fontSize: "14px",
+            background: "#0a2a55",
+            color: "#fff",
+            borderRadius: "12px",
           },
         }}
       />
 
       <AnimatePresence mode="wait">
-        <motion.div
-           key={location.pathname}
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           exit={{ opacity: 0, y: -10 }}
-           transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <Routes location={location} key={location.pathname}>
-            {/* ================= PUBLIC ROUTES ================= */}
-            <Route element={<PublicLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/doctors" element={<DoctorHome />} />
-              <Route path="/doctor/:slug" element={<DoctorDetailPage />} />
-              <Route path="/doctors/:id" element={<DoctorDetails />} />
-              <Route path="/hospitals" element={<HospitalHome />} />
-              <Route path="/hospital/:slug" element={<HospitalDetailPage />} />
-              <Route path="/book/:hospitalId?/:doctorId?" element={<BookingFlow />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/appointment" element={<Appointment />} />
-              <Route path="/blog" element={<BlogListing />} />
-              <Route path="/blog/:slug" element={<BlogDetail />} />
-              <Route path="/specialities/:name" element={<PsychiatricServicesDetails />} />
-              <Route path='/service/:name' element={<PsychiatricServicesDetails />} />
-              <Route path="/host" element={<Host />} />
-              <Route path="/view" element={<Viewer />} />
-              <Route path="/bio-data" element={<BiodataApp />} />
-            </Route>
+        <Routes location={location} key={location.pathname}>
+          {/* ================= PUBLIC ROUTES ================= */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/doctors" element={<PageTransition><DoctorHome /></PageTransition>} />
+            <Route path="/doctor/:slug" element={<PageTransition><DoctorDetailPage /></PageTransition>} />
+            <Route path="/doctors/:id" element={<PageTransition><DoctorDetailPage /></PageTransition>} />
+            <Route path="/hospitals" element={<PageTransition><HospitalHome /></PageTransition>} />
+            <Route path="/hospital/:slug" element={<PageTransition><HospitalDetailPage /></PageTransition>} />
+            <Route path="/book/:hospitalId?/:doctorId?" element={<PageTransition><BookingFlow /></PageTransition>} />
+            <Route path="/booking" element={<PageTransition><BookingFlow /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
+            <Route path="/appointment" element={<PageTransition><Appointment /></PageTransition>} />
+            <Route path="/appoitment" element={<PageTransition><Appointment /></PageTransition>} />
+            <Route path="/blog" element={<PageTransition><BlogListing /></PageTransition>} />
+            <Route path="/blog/:slug" element={<PageTransition><BlogDetail /></PageTransition>} />
+            <Route path="/specialities/:name" element={<PageTransition><PsychiatricServicesDetails /></PageTransition>} />
+            <Route path='/service/:name' element={<PageTransition><PsychiatricServicesDetails /></PageTransition>} />
+            <Route path="/host" element={<PageTransition><Host /></PageTransition>} />
+            <Route path="/view" element={<PageTransition><Viewer /></PageTransition>} />
+            <Route path="/bio-data" element={<PageTransition><BiodataApp /></PageTransition>} />
+          </Route>
 
-            {/* ================= ADMIN ROUTES ================= */}
-            <Route path="/admin/login" element={
-              <ProtectedRoute requireAuth={false}>
-                <AdminLogin />
+          {/* ================= ADMIN ROUTES (No Transitions for speed) ================= */}
+          <Route path="/admin/login" element={
+            <ProtectedRoute requireAuth={false}>
+              <AdminLogin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
               </ProtectedRoute>
-            } />
+            }
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="doctors/list" element={<DoctorTable />} />
+            <Route path="doctors-add" element={<DoctorManagement />} />
+            <Route path="hospitals-add" element={<HospitalManagement />} />
+            <Route path="hospitals/list" element={<HospitalList />} />
+            <Route path="master/countries" element={<CountrySetting />} />
+            <Route path="hospital/language-setting" element={<LanguageSetting />} />
+            <Route path="master/categories" element={<CategoryManagement />} />
+            <Route path="master/sub-categories" element={<SubcategoryManagement />} />
+            <Route path="blogs" element={<BlogManagement />} />
+            <Route path="blogs/create" element={<BlogForm />} />
+            <Route path="blogs/edit/:id" element={<BlogForm />} />
+            <Route path="contacts" element={<ContactManagement />} />
+            <Route path="appointments" element={<AppointmentManagement />} />
+            <Route path="seo" element={<SEOManagement />} />
+          </Route>
 
-            <Route path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboardPage />} />
-              <Route path="dashboard" element={<AdminDashboardPage />} />
-              <Route path="doctors/list" element={<DoctorTable />} />
-              <Route path="doctors-add" element={<DoctorManagement />} />
-              <Route path="hospitals-add" element={<HospitalManagement />} />
-              <Route path="hospitals/list" element={<HospitalList />} />
-              <Route path="master/countries" element={<CountrySetting />} />
-              <Route path="hospital/language-setting" element={<LanguageSetting />} />
-              <Route path="master/categories" element={<CategoryManagement />} />
-              <Route path="master/sub-categories" element={<SubcategoryManagement />} />
-              <Route path="blogs" element={<BlogManagement />} />
-              <Route path="blogs/create" element={<BlogForm />} />
-              <Route path="blogs/edit/:id" element={<BlogForm />} />
-              <Route path="contacts" element={<ContactManagement />} />
-              <Route path="appointments" element={<AppointmentManagement />} />
-              <Route path="seo" element={<SEOManagement />} />
-            </Route>
-
-            {/* ================= PATIENT ROUTES ================= */}
-            <Route path="/patient/login" element={<PatientLogin />} />
-            <Route path="/patient/register" element={<PatientRegister />} />
-            <Route path="/patient/dashboard" element={<PatientDashboardp />} />
-          </Routes>
-        </motion.div>
+          {/* ================= PATIENT ROUTES ================= */}
+          <Route path="/patient/login" element={<PatientLogin />} />
+          <Route path="/patient/register" element={<PatientRegister />} />
+          <Route path="/patient/dashboard" element={<PatientDashboardp />} />
+        </Routes>
       </AnimatePresence>
     </AuthProvider>
   );

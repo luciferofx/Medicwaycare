@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import EditableText from './EditableText';
 import url_prefix from '../data/variable';
 import bannerimg from '../assets/background.png';
+import { Shield, Award, Headphones, Star } from 'lucide-react';
 
 
 const COUNTRIES = [
@@ -247,21 +249,63 @@ export default function HeroBanner() {
                 {/* ── Teal overlay gradient — left to right ── */}
                 <div style={{
                     position: "absolute", inset: 0,
-                    background: "linear-gradient(105deg, rgba(8,30,62,0.95) 0%, rgba(10,42,85,0.85) 35%, rgba(30,58,138,0.45) 62%, rgba(0,0,0,0.1) 100%)",
+                    background: "linear-gradient(105deg, rgba(8,30,62,0.98) 0%, rgba(10,42,85,0.88) 35%, rgba(30,58,138,0.5) 62%, rgba(0,0,0,0.1) 100%)",
                 }} />
 
-                {/* ── Decorative circles ── */}
+                {/* ── Decorative animated circles ── */}
                 {[
-                    { w: 320, h: 320, top: "-100px", left: "-80px", o: 0.06 },
-                    { w: 180, h: 180, bottom: "-50px", left: "20%", o: 0.05 },
-                    { w: 100, h: 100, top: "40px", left: "42%", o: 0.04 },
+                    { w: 320, h: 320, top: "-100px", left: "-80px", o: 0.06, d: 20 },
+                    { w: 180, h: 180, bottom: "-50px", left: "20%", o: 0.05, d: 15 },
+                    { w: 100, h: 100, top: "40px", left: "42%", o: 0.04, d: 12 },
                 ].map((c, i) => (
-                    <div key={i} style={{
-                        position: "absolute", width: c.w, height: c.h, borderRadius: "50%",
-                        border: "2px solid white", opacity: c.o,
-                        top: c.top, bottom: c.bottom, left: c.left, pointerEvents: "none",
-                    }} />
+                    <motion.div 
+                        key={i} 
+                        animate={{ y: [0, -c.d, 0], x: [0, c.d/2, 0] }}
+                        transition={{ duration: 8 + i * 2, repeat: Infinity, ease: "easeInOut" }}
+                        style={{
+                            position: "absolute", width: c.w, height: c.h, borderRadius: "50%",
+                            border: "2px solid white", opacity: c.o,
+                            top: c.top, bottom: c.bottom, left: c.left, pointerEvents: "none",
+                        }} 
+                    />
                 ))}
+
+                {/* ── Floating Medical Elements ── */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {/* Floating Cross */}
+                    <motion.div 
+                        animate={{ y: [0, -40, 0], rotate: [0, 15, 0], opacity: [0.03, 0.08, 0.03] }}
+                        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute top-[20%] right-[10%]"
+                    >
+                        <svg width="80" height="80" viewBox="0 0 100 100" fill="white">
+                            <rect x="40" y="10" width="20" height="80" rx="4" />
+                            <rect x="10" y="40" width="80" height="20" rx="4" />
+                        </svg>
+                    </motion.div>
+
+                    {/* Floating Pill */}
+                    <motion.div 
+                        animate={{ y: [0, 30, 0], rotate: [-10, 10, -10], opacity: [0.03, 0.06, 0.03] }}
+                        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                        className="absolute bottom-[25%] left-[45%]"
+                    >
+                        <svg width="60" height="30" viewBox="0 0 60 30" fill="white">
+                           <rect x="0" y="0" width="60" height="30" rx="15" />
+                        </svg>
+                    </motion.div>
+
+                    {/* Floating Heartbeat Path */}
+                    <motion.div 
+                        animate={{ opacity: [0.02, 0.07, 0.02], x: [-10, 10, -10] }}
+                        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute top-[60%] left-[5%]"
+                    >
+                        <svg width="120" height="60" viewBox="0 0 120 60" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                            <path d="M0 30 L20 30 L30 10 L45 50 L60 30 L80 30" />
+                        </svg>
+                    </motion.div>
+                </div>
 
                 {/* ── Medical cross watermark ── */}
                 <div style={{ position: "absolute", bottom: "30px", left: "6%", opacity: 0.05, pointerEvents: "none" }}>
@@ -275,7 +319,13 @@ export default function HeroBanner() {
                 <div className="hero-content-grid">
 
                     {/* LEFT: Text */}
-                    <div className="hero-left-col" style={{ animation: "fadeSlideRight 0.75s ease both" }}>
+                    <motion.div
+                        className="hero-left-col"
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                    >
                         {/* Badge */}
                         <div style={{
                             display: "inline-flex", alignItems: "center", gap: "7px",
@@ -297,7 +347,7 @@ export default function HeroBanner() {
                         {/* Headline */}
                         <h1 style={{
                             fontFamily: "'Lora', serif",
-    
+
                             fontWeight: "700",
                             color: "white",
                             lineHeight: 1,
@@ -326,7 +376,7 @@ export default function HeroBanner() {
                             </span>
                         </h1>
                         {/* Subtitle */}
-                        <p style={{
+                        <div style={{
                             fontSize: "15px", color: "rgba(255,255,255,0.72)",
                             lineHeight: 1.75, marginBottom: "36px", maxWidth: "420px"
                         }}>
@@ -338,7 +388,7 @@ export default function HeroBanner() {
                                 initialValue="MedicwayCare provides access to top clinical psychologists and therapy centers. Get evidence-based treatments, counseling, and mental health support tailored to your journey."
                                 tagName="span"
                                 className="" />
-                        </p>
+                        </div>
 
                         {/* Avatar stack + patient count */}
                         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "22px" }}>
@@ -396,17 +446,25 @@ export default function HeroBanner() {
                                 <div key={i} className="trust-pill">{p}</div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* RIGHT: Form card */}
-                    <div className="hero-form-card" style={{
-                        background: "white",
-                        borderRadius: "20px",
-                        padding: "32px 28px",
-                        boxShadow: "0 24px 70px rgba(10,42,85,0.2), 0 0 0 1px rgba(10,42,85,0.08)",
-                        animation: "fadeSlideIn 0.75s ease 0.15s both",
-                        position: "relative",
-                    }}>
+                    <motion.div
+                        className="hero-form-card"
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                        style={{
+                            background: "rgba(255, 255, 255, 0.95)",
+                            backdropFilter: "blur(12px)",
+                            borderRadius: "24px",
+                            padding: "36px 30px",
+                            boxShadow: "0 24px 70px rgba(10,42,85,0.25), 0 0 0 1px rgba(10,42,85,0.05)",
+                            position: "relative",
+                            border: "1px solid rgba(255, 255, 255, 0.6)",
+                        }}
+                    >
                         {/* Top teal accent strip */}
                         <div style={{
                             position: "absolute", top: 0, left: "28px", right: "28px", height: "3px",
@@ -577,7 +635,7 @@ export default function HeroBanner() {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </>

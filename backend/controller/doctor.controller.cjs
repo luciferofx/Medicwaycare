@@ -57,29 +57,38 @@ class DoctorController {
 
     console.log("doctore", req.body);
 
-    if (!name || !email || !phone || !categoryId) {
+    if (!name) {
       return responseHandler.errorResponse(
         res,
         400,
-        "Name, Email, Phone, and Category ID are required"
+        "Name is required"
       );
     }
 
-    const counter = await CountryModel.findById(conteryId);
-    if (!counter || counter.is_deleted) {
-      return responseHandler.errorResponse(res, 404, "Countery not found");
+    // Country validation (optional)
+    if (conteryId) {
+      const counter = await CountryModel.findById(conteryId);
+      if (!counter || counter.is_deleted) {
+        return responseHandler.errorResponse(res, 404, "Country not found");
+      }
     }
 
     const parsedSubCategoryId = parseArray(subCategoryId);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return responseHandler.errorResponse(res, 400, "Invalid email format");
+    // Email validation (optional)
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return responseHandler.errorResponse(res, 400, "Invalid email format");
+      }
     }
 
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(phone)) {
-      return responseHandler.errorResponse(res, 400, "Invalid mobile number");
+    // Phone validation (optional)
+    if (phone) {
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return responseHandler.errorResponse(res, 400, "Invalid mobile number");
+      }
     }
 
     // --- SLUG CHECK ---
@@ -92,10 +101,12 @@ class DoctorController {
       );
     }
 
-    // --- CATEGORY CHECK ---
-    const category = await CategoryModel.findById(categoryId);
-    if (!category) {
-      return responseHandler.errorResponse(res, 404, "Category not found");
+    // --- CATEGORY CHECK (optional) ---
+    if (categoryId) {
+      const category = await CategoryModel.findById(categoryId);
+      if (!category) {
+        return responseHandler.errorResponse(res, 404, "Category not found");
+      }
     }
 
     // --- SUBCATEGORY VALIDATION (PARSED VALUE) ---
@@ -146,10 +157,10 @@ class DoctorController {
     // --- CREATE DOCTOR ---
     const doctor = await DoctorModel.create({
       name,
-      email: email.toLowerCase(),
-      phone: phone.trim(),
-      categoryId,
-      conteryId,
+      email: email ? email.toLowerCase() : undefined,
+      phone: phone ? phone.trim() : undefined,
+      categoryId: categoryId || undefined,
+      conteryId: conteryId || undefined,
       subCategoryId: parsedSubCategoryId,
       location: parseObject(location),
       experience,
@@ -492,7 +503,12 @@ class DoctorController {
         });
       }
 
-      matchStage.categoryId = categoryDoc._id;
+      // Show doctors with matching categoryId OR doctors with no categoryId (they appear in all categories)
+      matchStage.$or = [
+        { categoryId: categoryDoc._id },
+        { categoryId: { $exists: false } },
+        { categoryId: null }
+      ];
     }
 
     /* ---------------- LOCATION FILTERS ---------------- */
@@ -607,8 +623,21 @@ class DoctorController {
 
   getDoctorBySlug = tryCatchFn(async (req, res) => {
     const { slug } = req.params;
+    const mongoose = require('mongoose');
 
-    const doctor = await DoctorModel.findOne({ slug, is_deleted: { $ne: true }, is_active: true })
+    const isObjectId = mongoose.Types.ObjectId.isValid(slug);
+    
+    const query = {
+      is_deleted: { $ne: true },
+      is_active: true,
+      $or: [{ slug: slug }]
+    };
+
+    if (isObjectId) {
+      query.$or.push({ _id: slug });
+    }
+
+    const doctor = await DoctorModel.findOne(query)
       .populate("categoryId")
       .populate("subCategoryId")
       .populate("conteryId");

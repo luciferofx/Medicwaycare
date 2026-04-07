@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import medicwayLogo from "../assets/logo1.png";
 import EditableText from "./EditableText";
 
 export default function MedicwayCTA() {
+  const navigate = useNavigate();
   return (
     <section className="w-full px-4 sm:px-6 lg:px-12 py-10 sm:py-14">
       <div className="relative w-full min-h-[420px] rounded-2xl sm:rounded-3xl overflow-hidden flex items-center"
@@ -76,6 +78,7 @@ export default function MedicwayCTA() {
                 whileTap={{ scale: 0.97 }}
                 className="px-6 py-3 rounded-xl text-sm font-semibold text-white cursor-pointer border-0"
                 style={{ background: "#1565c0" }}
+                onClick={() => navigate('/book')}
               >
                 Book Free Consultation
               </motion.button>
@@ -87,6 +90,7 @@ export default function MedicwayCTA() {
                   background: "transparent",
                   border: "1.5px solid rgba(255,255,255,0.35)",
                 }}
+                onClick={() => navigate('/hospitals')}
               >
                 Explore Clinics
               </motion.button>

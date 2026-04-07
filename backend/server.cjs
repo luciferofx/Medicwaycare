@@ -19,16 +19,6 @@ const ATLAS_URI = process.env.ATLAS_URI || 'mongodb+srv://luciferofx:Raja9315@cl
 process.env.ATLAS_URI = ATLAS_URI;
 const PORT = process.env.PORT || 6003;
 
-// MIDDLEWARE: Remove Trailing Slashes
-app.use((req, res, next) => {
-  if (req.method !== 'OPTIONS' && req.path !== '/' && req.path.endsWith('/')) {
-    const query = req.url.slice(req.path.length);
-    res.redirect(301, req.path.slice(0, -1) + query);
-  } else {
-    next();
-  }
-});
-
 // CORS setup
 app.use(cors({
   origin: [
@@ -46,6 +36,16 @@ app.use(cors({
   ],
   credentials: true
 }));
+
+// MIDDLEWARE: Remove Trailing Slashes
+app.use((req, res, next) => {
+  if (req.method !== 'OPTIONS' && req.path !== '/' && req.path.endsWith('/')) {
+    const query = req.url.slice(req.path.length);
+    res.redirect(301, req.path.slice(0, -1) + query);
+  } else {
+    next();
+  }
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

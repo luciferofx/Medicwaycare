@@ -185,7 +185,6 @@ const HospitalManagement = () => {
                     <Form.Item
                         name="hospitalIntro"
                         label="Introduction Content"
-                        rules={[{ required: true, message: 'Please provide hospital introduction' }]}
                     >
                         <SunEditor
                             setContents={form.getFieldValue("hospitalIntro")}
@@ -212,7 +211,6 @@ const HospitalManagement = () => {
                         name={['phone']}
                         label="Phone Number"
                         rules={[
-                            { required: true, message: 'Please enter phone number' },
                             { pattern: /^[6-9]\d{9}$/, message: 'Invalid mobile number (10 digits, starting with 6-9)' }
                         ]}
                     >
@@ -254,7 +252,6 @@ const HospitalManagement = () => {
                             <Form.Item
                                 name={['address', 'country']}
                                 label="Country"
-                                rules={[{ required: true, message: 'Please select country' }]}
                             >
                                 <Select
                                     placeholder="Select country"
@@ -363,7 +360,6 @@ const HospitalManagement = () => {
                     <Form.Item
                         name="categories"
                         label="Categories"
-                        rules={[{ required: true, message: 'Please select at least one category' }]}
                     >
                         <Select
                             mode="multiple"

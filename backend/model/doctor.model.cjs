@@ -149,11 +149,17 @@ const doctorSchema = new Schema(
 );
 
 doctorSchema.pre("save", function (next) {
-  if (this.isModified("firstName") || this.isModified("lastName") || !this.fullName) {
+  // If firstName/lastName are missing but name is provided, use name as fullName
+  if (!this.firstName && !this.lastName && this.name) {
+    this.fullName = this.name;
+  } else if (this.isModified("firstName") || this.isModified("lastName") || !this.fullName) {
     this.fullName = `${this.firstName || ""} ${this.lastName || ""}`.trim();
   }
+
+  // Ensure slug is generated from fullName
   if (this.isModified("fullName") || !this.slug) {
-    this.slug = slugify(this.fullName, {
+    const slugSource = this.fullName || this.name || "doctor";
+    this.slug = slugify(slugSource, {
       lower: true,
       strict: true,
     });

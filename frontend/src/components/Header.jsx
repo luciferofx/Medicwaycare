@@ -1,8 +1,7 @@
-
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, ChevronRight, Globe } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { Menu, X, ChevronDown, ChevronRight, Globe, Sparkles } from "lucide-react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/logo.jpeg";
 
 import {
@@ -10,6 +9,14 @@ import {
   useGetLanguageDropdownQuery,
 } from "@/rtk/slices/dropdownApiSlice";
 import { CountryFlag } from "@/helper/countryFlags";
+import { useLanguage } from "../hooks/useLanguage";
+
+const POPULAR_LANGUAGES = [
+  { shortCode: "EN", language_name: "English" },
+  { shortCode: "HI", language_name: "Hindi" },
+  { shortCode: "RU", language_name: "Russian" },
+  { shortCode: "FR", language_name: "French" }
+];
 
 const ROW_H = 46;   // country row height  (px)
 const LABEL_H = 32;   // "COUNTRIES" header  (px)
@@ -21,13 +28,29 @@ const Header = () => {
   const [activeMega, setActiveMega] = useState(null);
   const [hoverIdx, setHoverIdx] = useState(0);
   const [mobileExpanded, setMobileExpanded] = useState({});
+  const location = useLocation();
+
+  const { scrollY } = useScroll();
+
+  // Glassmorphic background transitions
+  const headerBg = useTransform(
+    scrollY,
+    [0, 50],
+    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.85)"]
+  );
+  const headerBlur = useTransform(scrollY, [0, 50], ["blur(0px)", "blur(20px)"]);
+  const borderOpacity = useTransform(scrollY, [0, 50], [0, 1]);
 
   const closeTimer = useRef(null);
 
   const { data } = useGetCountryCategoryDropdownQuery();
   const { data: languageData } = useGetLanguageDropdownQuery();
+  const [currentLang, changeLanguage] = useLanguage();
+  
   const countries = data?.data?.result ?? [];
-  const languages = languageData?.data ?? [];
+  const apiLanguages = languageData?.data ?? [];
+  
+  const displayLanguages = apiLanguages.length > 0 ? apiLanguages : POPULAR_LANGUAGES;
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -55,276 +78,296 @@ const Header = () => {
 
   const hoverCountry = countries[hoverIdx] ?? null;
 
-  /* The left-column full height = LABEL_H + rows + 10px bottom pad */
-  const leftH = LABEL_H + Math.min(countries.length, 7) * ROW_H + 10;
-
   return (
     <motion.header
-      initial={false}
-      animate={{
-        backgroundColor: "rgba(255,255,255,1)",
-        boxShadow: scrolled
-          ? "0 2px 16px rgba(0,0,0,0.09)"
-          : "0 1px 0 rgba(0,0,0,0.07)",
+      style={{ 
+        backgroundColor: headerBg, 
+        backdropFilter: headerBlur,
+        WebkitBackdropFilter: headerBlur // for Safari
       }}
-      transition={{ duration: 0.2 }}
-      className="fixed w-full z-[900]"
+      className="fixed w-full z-[900] transition-colors duration-300"
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center" style={{ height: 62 }}>
+      {/* Glow Bottom Edge */}
+      <motion.div 
+        style={{ opacity: borderOpacity }}
+        className="absolute bottom-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent pointer-events-none" 
+      />
+
+      <div className="max-w-7xl mx-auto px-6 flex items-center relative" style={{ height: 72 }}>
 
         {/* ── Logo ── */}
-        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 mr-8">
-          <img
-            src={logo}
-            alt="MedicwayCare Logo"
-            className="w-9 h-9 object-cover rounded-xl shadow-sm"
-          />
-          <span className="font-bold text-gray-900 text-[15px] tracking-tight">
-            Medicway<span className="text-gray-400 font-normal">Care</span>
+        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 mr-12 group">
+          <motion.div 
+            whileHover={{ scale: 1.1, rotate: [-5, 5, 0] }}
+            className="relative"
+          >
+            <img
+              src={logo}
+              alt="MedicwayCare Logo"
+              className="w-10 h-10 object-cover rounded-2xl shadow-xl border-2 border-white/50"
+            />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500/20 rounded-full blur-sm group-hover:bg-blue-500/40" />
+          </motion.div>
+          <span className="font-black text-[#0a2a55] text-lg tracking-tighter group-hover:tracking-normal transition-all duration-300">
+            Medicway<span className="text-blue-500/70 font-bold">Care</span>
           </span>
         </Link>
+
         {/* ── Desktop Nav ── */}
-        <nav className="hidden lg:flex items-center flex-1">
-          {navItems.map((item) => (
-            <div
-              key={item.label}
-              className="relative"
-              onMouseEnter={() => item.mega ? openMega(item.label) : null}
-              onMouseLeave={() => item.mega ? closeMega() : null}
-            >
-              <NavLink
-                to={item.path}
-                style={{ height: 62 }}
-                className={({ isActive }) =>
-                  `relative flex items-center gap-1 px-4 text-[13.5px] font-medium transition-colors duration-150 ${isActive ? "text-[#0a2a55]" : "text-gray-700 hover:text-[#0a2a55]"
-                  }`
-                }
+        <nav className="hidden lg:flex items-center flex-1 h-full">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+            
+            return (
+              <div
+                key={item.label}
+                className="relative h-full"
+                onMouseEnter={() => item.mega ? openMega(item.label) : null}
+                onMouseLeave={() => item.mega ? closeMega() : null}
               >
-                {({ isActive }) => (
-                  <>
-                    {item.label}
-                    {item.mega && (
-                      <ChevronDown
-                        size={13}
-                        className={`mt-px transition-transform duration-200 ${activeMega === item.label ? "rotate-180" : ""}`}
-                      />
-                    )}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-3 right-3 h-[2.5px] bg-[#0a2a55] rounded-t-full" />
-                    )}
-                  </>
-                )}
-              </NavLink>
+                <NavLink
+                  to={item.path}
+                  style={{ height: 72 }}
+                  className={`relative flex items-center gap-1.5 px-5 text-[13px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    isActive ? "text-[#0a2a55]" : "text-slate-500 hover:text-[#0a2a55]"
+                  }`}
+                >
+                  {item.label}
+                  {item.mega && (
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${activeMega === item.label ? "rotate-180 text-blue-500" : ""}`}
+                    />
+                  )}
+                  {isActive && (
+                    <motion.span 
+                      layoutId="nav-underline"
+                      className="absolute bottom-0 left-4 right-4 h-[3px] bg-blue-500 rounded-t-full shadow-[0_0_10px_rgba(59,130,246,0.6)]" 
+                    />
+                  )}
+                </NavLink>
 
-              {/* ══════════════ MEGA MENU ══════════════ */}
-              <AnimatePresence>
-                {item.mega && activeMega === item.label && (
-                  <motion.div
-                    key="mega"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    onMouseEnter={cancelClose}
-                    onMouseLeave={closeMega}
-                    className="absolute left-0 bg-white rounded-2xl z-50"
-                    style={{
-                      top: "calc(100% + 6px)",
-                      minWidth: 620,
-                      boxShadow: "0 8px 40px rgba(0,0,0,0.13)",
-                      border: "1px solid #e8e8e8",
-                    }}
-                  >
-                    <div className="flex overflow-hidden rounded-2xl">
+                {/* ══════════════ MEGA MENU ══════════════ */}
+                <AnimatePresence>
+                  {item.mega && activeMega === item.label && (
+                    <motion.div
+                      key="mega"
+                      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      onMouseEnter={cancelClose}
+                      onMouseLeave={closeMega}
+                      className="absolute left-0 bg-white/95 backdrop-blur-2xl rounded-[2rem] z-50 overflow-hidden"
+                      style={{
+                        top: "calc(100% - 10px)",
+                        minWidth: 6400, // Large to prevent wrap, constrained by container
+                        maxWidth: "calc(100vw - 80px)",
+                        width: 720,
+                        boxShadow: "0 25px 60px rgba(10, 42, 85, 0.15)",
+                        border: "1px solid rgba(10, 42, 85, 0.08)",
+                      }}
+                    >
+                      <div className="flex">
 
-                      {/* ─── LEFT: Country list ─── */}
-                      <div
-                        style={{
-                          width: 230,
-                          minWidth: 230,
-                          flexShrink: 0,
-                          borderRight: "1px solid #f0f0f0",
-                        }}
-                      >
-                        {/* label */}
+                        {/* ─── LEFT: Country list ─── */}
                         <div
-                          className="flex items-center px-5"
-                          style={{ height: LABEL_H }}
+                          style={{
+                            width: 260,
+                            minWidth: 260,
+                            flexShrink: 0,
+                            borderRight: "1px solid rgba(10, 42, 85, 0.05)",
+                            backgroundColor: "rgba(10, 42, 85, 0.02)"
+                          }}
                         >
-                          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                            Countries
-                          </span>
-                        </div>
+                          <div className="flex items-center px-6" style={{ height: 48 }}>
+                            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+                              Clinical Locations
+                            </span>
+                          </div>
 
-                        {/* rows — scrollable */}
-                        <div
-                          className="overflow-y-auto"
-                          style={{ maxHeight: MAX_LIST_H }}
-                        >
-                          {countries.map((c, idx) => {
-                            const active = hoverIdx === idx;
-                            return (
-                              <div
-                                key={c.countryId}
-                                style={{ height: ROW_H }}
-                                onMouseEnter={() => setHoverIdx(idx)}
-                                className={`relative flex items-center gap-3 px-5 cursor-pointer select-none transition-colors duration-100 ${active ? "bg-[#0a2a55] text-white" : "text-gray-600 hover:bg-blue-50"
+                          <div className="overflow-y-auto pr-1" style={{ maxHeight: MAX_LIST_H }}>
+                            {countries.map((c, idx) => {
+                              const active = hoverIdx === idx;
+                              return (
+                                <div
+                                  key={c.countryId}
+                                  style={{ height: 52 }}
+                                  onMouseEnter={() => setHoverIdx(idx)}
+                                  className={`relative flex items-center gap-4 px-6 cursor-pointer select-none transition-all duration-300 ${
+                                    active ? "bg-[#0a2a55] text-white shadow-xl shadow-blue-900/20" : "text-slate-600 hover:bg-blue-50/50"
                                   }`}
-                              >
-                                {active && (
-                                  <motion.span
-                                    layoutId={`lb-${item.label}`}
-                                    className="absolute left-0 top-[8px] bottom-[8px] w-[3px] rounded-r-full bg-[#0a2a55]"
-                                    transition={{ type: "spring", stiffness: 500, damping: 45 }}
+                                >
+                                  {active && (
+                                    <motion.span
+                                      layoutId={`indicator-${item.label}`}
+                                      className="absolute left-0 top-3 bottom-3 w-1 bg-cyan-400 rounded-r-full"
+                                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                  )}
+                                  <CountryFlag
+                                    slug={c.slugName}
+                                    name={c.countryName}
+                                    width={24}
+                                    className={`flex-shrink-0 rounded-md shadow-md overflow-hidden ${active ? "grayscale-0" : "grayscale"}`}
                                   />
-                                )}
-                                <CountryFlag
-                                  slug={c.slugName}
-                                  name={c.countryName}
-                                  width={22}
-                                  className="flex-shrink-0 rounded-[3px] shadow-sm overflow-hidden"
-                                />
-                                <span className={`flex-1 text-[13.5px] font-medium truncate ${active ? "text-white" : "text-gray-700"}`}>
-                                  {c.countryName}
-                                </span>
-                                <ChevronRight
-                                  size={13}
-                                  className={`flex-shrink-0 ${active ? "text-white" : "text-gray-300"}`}
-                                />
-                              </div>
-                            );
-                          })}
-                          <div style={{ height: 10 }} />
+                                  <span className="flex-1 text-[13.5px] font-black tracking-tight truncate">
+                                    {c.countryName}
+                                  </span>
+                                  <ChevronRight
+                                    size={14}
+                                    className={`transition-transform duration-300 ${active ? "translate-x-1 text-cyan-400" : "text-slate-300"}`}
+                                  />
+                                </div>
+                              );
+                            })}
+                            <div style={{ height: 16 }} />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* ─── RIGHT: Categories — ALWAYS starts from top, full height ─── */}
-                      <div className="flex-1 flex flex-col min-w-0">
+                        {/* ─── RIGHT: Specialities ─── */}
+                        <div className="flex-1 flex flex-col min-w-0 bg-white">
+                          <div className="flex items-center px-8" style={{ height: 48 }}>
+                             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 flex items-center gap-2">
+                               Expertise Path <Sparkles size={12} className="text-blue-500" />
+                             </span>
+                          </div>
 
-                        {/* spacer that aligns with the "COUNTRIES" label */}
-                        <div style={{ height: LABEL_H, flexShrink: 0 }} />
-
-                        {/* full-height scrollable category list */}
-                        <AnimatePresence mode="wait">
-                          {hoverCountry && (
-                            <motion.div
-                              key={hoverCountry.countryId}
-                              initial={{ opacity: 0, x: -6 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.1 }}
-                              className="flex flex-col flex-1"
-                            >
-                              <div
-                                className="overflow-y-auto flex-1"
-                                style={{ maxHeight: MAX_LIST_H }}
+                          <AnimatePresence mode="wait">
+                            {hoverCountry && (
+                              <motion.div
+                                key={hoverCountry.countryId}
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex flex-col flex-1"
                               >
-                                {hoverCountry.categories?.length > 0 ? (
-                                  hoverCountry.categories.map((cat) => (
+                                <div className="overflow-y-auto px-4" style={{ maxHeight: MAX_LIST_H }}>
+                                  <div className="grid grid-cols-2 gap-x-2">
+                                    {hoverCountry.categories?.length > 0 ? (
+                                      hoverCountry.categories.map((cat) => (
+                                        <Link
+                                          key={cat.categoryId}
+                                          to={
+                                            item.label === "Doctors"
+                                              ? `/doctors?country=${hoverCountry.slugName}&category=${cat.slugName}`
+                                              : `/hospitals?country=${hoverCountry.slugName}&category=${cat.slugName}`
+                                          }
+                                          onClick={() => setActiveMega(null)}
+                                          style={{ height: 48 }}
+                                          className="flex items-center justify-between px-4 rounded-xl group hover:bg-blue-50/70 transition-all duration-300"
+                                        >
+                                          <span className="text-[11px] font-bold tracking-tight text-slate-600 group-hover:text-[#0a2a55]">
+                                            {cat.categoryName}
+                                          </span>
+                                          <ChevronRight
+                                            size={12}
+                                            className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all"
+                                          />
+                                        </Link>
+                                      ))
+                                    ) : (
+                                      <div className="col-span-2 flex items-center justify-center py-20 text-sm text-slate-400 italic">
+                                        Specialities arriving soon in {hoverCountry.countryName}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {hoverCountry.categories?.length > 0 && (
+                                  <div className="px-8 py-5 border-t border-slate-50 flex-shrink-0 mt-auto bg-slate-50/30">
                                     <Link
-                                      key={cat.categoryId}
                                       to={
                                         item.label === "Doctors"
-                                          ? `/doctors?country=${hoverCountry.slugName}&category=${cat.slugName}`
-                                          : `/hospitals?country=${hoverCountry.slugName}&category=${cat.slugName}`
+                                          ? `/doctors?country=${hoverCountry.slugName}`
+                                          : `/hospitals?country=${hoverCountry.slugName}`
                                       }
                                       onClick={() => setActiveMega(null)}
-                                      style={{ height: ROW_H }}
-                                      className="flex items-center justify-between px-6 group hover:bg-gray-50 transition-colors"
+                                      className="group flex items-center gap-2 text-[12px] font-black text-[#0a2a55] tracking-widest uppercase"
                                     >
-                                      <span className="text-[11.5px] font-bold tracking-[0.09em] uppercase text-gray-500 group-hover:text-[#0a2a55] transition-colors">
-                                        {cat.categoryName}
-                                      </span>
-                                      <ChevronRight
-                                        size={13}
-                                        className="text-gray-300 group-hover:text-[#0a2a55] flex-shrink-0 transition-colors"
-                                      />
+                                      All Clinics In {hoverCountry.countryName}
+                                      <ChevronRight size={14} className="group-hover:translate-x-2 transition-transform text-blue-500" />
                                     </Link>
-                                  ))
-                                ) : (
-                                  <div className="flex items-center justify-center py-10 text-sm text-gray-400">
-                                    No specialities available
                                   </div>
                                 )}
-                              </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
 
-                              {/* view all */}
-                              {hoverCountry.categories?.length > 0 && (
-                                <div className="px-6 py-3 border-t border-gray-100 flex-shrink-0">
-                                  <Link
-                                    to={
-                                      item.label === "Doctors"
-                                        ? `/doctors?country=${hoverCountry.slugName}`
-                                        : `/hospitals?country=${hoverCountry.slugName}`
-                                    }
-                                    onClick={() => setActiveMega(null)}
-                                    className="text-[12px] font-semibold text-[#0a2a55] hover:text-[#0a2a55] hover:underline transition-colors"
-                                  >
-                                    View all in {hoverCountry.countryName} →
-                                  </Link>
-                                </div>
-                              )}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
-
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
 
-        {/* ── Right ── */}
-        <div className="hidden lg:flex items-center gap-3 ml-auto">
+        {/* ── Right Buttons ── */}
+        <div className="hidden lg:flex items-center gap-5 ml-auto">
           <div
             className="relative"
             onMouseEnter={() => openMega("lang")}
             onMouseLeave={closeMega}
           >
-            <button className="flex items-center gap-1.5 text-[13px] text-gray-600 hover:text-[#0a2a55] px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-              <Globe size={14} />
-              Language
-              <ChevronDown size={12} className={`transition-transform duration-200 ${activeMega === "lang" ? "rotate-180" : ""}`} />
+            <button className={`flex items-center gap-2 text-[13px] font-bold tracking-tight transition-all duration-300 px-4 py-2 rounded-xl ${
+              activeMega === "lang" ? "bg-blue-50 text-[#0a2a55]" : "text-slate-600 hover:bg-slate-50"
+            }`}>
+              <Globe size={15} />
+              {displayLanguages.find(l => l.shortCode === currentLang)?.language_name || "Language"}
+              <ChevronDown size={12} className={`transition-transform duration-300 ${activeMega === "lang" ? "rotate-180" : ""}`} />
             </button>
             <AnimatePresence>
               {activeMega === "lang" && (
                 <motion.div
-                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.15 }}
-                  onMouseEnter={cancelClose} onMouseLeave={closeMega}
-                  className="absolute right-0 top-full mt-1.5 bg-white rounded-xl py-1.5 z-50 max-h-64 overflow-y-auto"
-                  style={{ minWidth: 160, boxShadow: "0 8px 30px rgba(0,0,0,0.11)", border: "1px solid #e8e8e8" }}
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onMouseEnter={cancelClose}
+                  onMouseLeave={closeMega}
+                  className="absolute right-0 top-full mt-3 bg-white/95 backdrop-blur-xl rounded-2xl py-2 z-50 ring-1 ring-slate-200 overflow-hidden"
+                  style={{ minWidth: 180, boxShadow: "0 15px 40px rgba(0,0,0,0.1)" }}
                 >
-                  {languages.length > 0
-                    ? languages.map((lang, i) => (
-                      <div key={i} className={`px-4 py-2.5 text-[13px] transition-colors ${false ? "bg-[#0a2a55] text-white shadow-md shadow-blue-200" : "text-gray-700 hover:bg-blue-50 hover:text-[#0a2a55] cursor-pointer"}`}>
-                        {lang.language_name}
-                      </div>
-                    ))
-                    : <div className="px-4 py-3 text-sm text-gray-400">No languages</div>
-                  }
+                  {displayLanguages.map((lang, i) => (
+                    <button 
+                      key={i} 
+                      onClick={() => { changeLanguage(lang.shortCode); closeMega(); }}
+                      className={`w-full text-left px-5 py-3 text-[12.5px] font-bold transition-all ${
+                        currentLang === lang.shortCode 
+                          ? "bg-[#0a2a55] text-white" 
+                          : "text-slate-600 hover:bg-blue-50 hover:text-[#0a2a55]"
+                      }`}
+                    >
+                      {lang.language_name}
+                    </button>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          <Link
-            to="/contact"
-            className="px-5 py-2.5 rounded-full bg-[#0a2a55] text-white text-[13.5px] font-semibold hover:bg-[#081f3e] transition-all duration-200 shadow-sm"
+          <motion.div
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Get Free Quote
-          </Link>
+            <Link
+              to="/contact"
+              className="px-7 py-3.5 rounded-2xl bg-gradient-to-tr from-[#0a2a55] to-blue-600 text-white text-[13px] font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:shadow-blue-500/30 transition-all duration-300"
+            >
+              Get Free Quote
+            </Link>
+          </motion.div>
         </div>
 
-        {/* ── Mobile hamburger ── */}
+        {/* ── Mobile Trigger ── */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="lg:hidden p-2 ml-auto rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+          className="lg:hidden p-3 ml-auto rounded-2xl bg-[#0a2a55]/5 text-[#0a2a55] hover:bg-[#0a2a55]/10 transition-colors"
         >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
@@ -332,54 +375,55 @@ const Header = () => {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="lg:hidden bg-white border-t border-gray-100 overflow-hidden"
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: "auto" }} 
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden bg-white border-t border-slate-100 overflow-hidden"
           >
-            <div className="px-4 py-3 space-y-0.5 max-h-[80vh] overflow-y-auto">
+            <div className="px-6 py-8 space-y-2 max-h-[85vh] overflow-y-auto">
               {navItems.map((item) => (
                 <div key={item.label}>
                   {item.mega ? (
-                    <>
+                    <div className="mb-2">
                       <button
                         onClick={() => setMobileExpanded((p) => ({ ...p, [item.label]: !p[item.label] }))}
-                        className="w-full flex items-center justify-between px-3 py-3 text-sm font-medium text-gray-800 rounded-xl hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center justify-between px-5 py-4 text-[14px] font-black text-slate-900 bg-slate-50 rounded-2xl"
                       >
                         {item.label}
-                        <ChevronDown size={15} className={`transition-transform ${mobileExpanded[item.label] ? "rotate-180" : ""}`} />
+                        <ChevronDown size={18} className={`transition-transform duration-300 ${mobileExpanded[item.label] ? "rotate-180 text-blue-500" : ""}`} />
                       </button>
                       <AnimatePresence>
                         {mobileExpanded[item.label] && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="ml-3 overflow-hidden"
+                            className="pl-4 mt-2 space-y-2"
                           >
                             {countries.map((country) => (
                               <div key={country.countryId}>
                                 <button
                                   onClick={() => setMobileExpanded((p) => ({ ...p, [`${item.label}-${country.countryId}`]: !p[`${item.label}-${country.countryId}`] }))}
-                                  className="w-full flex items-center justify-between px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-blue-50 transition-colors"
+                                  className={`w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold rounded-xl transition-all ${
+                                    mobileExpanded[`${item.label}-${country.countryId}`] ? "bg-blue-50 text-[#0a2a55]" : "text-slate-600"
+                                  }`}
                                 >
-                                  <span className="flex items-center gap-2.5">
-                                    <CountryFlag slug={country.slugName} name={country.countryName} width={18} className="rounded-sm" />
+                                  <span className="flex items-center gap-3">
+                                    <CountryFlag slug={country.slugName} name={country.countryName} width={20} className="rounded-sm" />
                                     {country.countryName}
                                   </span>
-                                  <ChevronDown size={13} className={`transition-transform ${mobileExpanded[`${item.label}-${country.countryId}`] ? "rotate-180" : ""}`} />
+                                  <ChevronDown size={15} className={`transition-transform duration-300 ${mobileExpanded[`${item.label}-${country.countryId}`] ? "rotate-180" : ""}`} />
                                 </button>
                                 <AnimatePresence>
                                   {mobileExpanded[`${item.label}-${country.countryId}`] && (
                                     <motion.div
                                       initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                                      transition={{ duration: 0.12 }}
-                                      className="ml-4 overflow-hidden"
+                                      className="pl-8 py-2 space-y-1"
                                     >
                                       {country.categories?.map((cat) => (
                                         <Link
                                           key={cat.categoryId}
                                           to={item.label === "Doctors" ? `/doctors?country=${country.slugName}&category=${cat.slugName}` : `/hospitals?country=${country.slugName}&category=${cat.slugName}`}
                                           onClick={() => setMobileOpen(false)}
-                                          className="block px-3 py-2 text-sm text-[#0a2a55] hover:bg-blue-50 rounded-lg transition-colors"
+                                          className="block px-4 py-3 text-[13px] font-semibold text-slate-500 hover:text-[#0a2a55] hover:bg-slate-50 rounded-xl"
                                         >
                                           {cat.categoryName}
                                         </Link>
@@ -387,9 +431,9 @@ const Header = () => {
                                       <Link
                                         to={item.label === "Doctors" ? `/doctors?country=${country.slugName}` : `/hospitals?country=${country.slugName}`}
                                         onClick={() => setMobileOpen(false)}
-                                        className="block px-3 py-2 text-xs text-[#0a2a55] font-semibold hover:underline"
+                                        className="block px-4 py-2 text-xs font-black text-blue-500"
                                       >
-                                        View all →
+                                        View all in {country.countryName} →
                                       </Link>
                                     </motion.div>
                                   )}
@@ -399,23 +443,26 @@ const Header = () => {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </>
+                    </div>
                   ) : (
                     <NavLink
                       to={item.path}
                       onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) => `block px-3 py-3 text-sm font-medium rounded-xl transition-colors ${isActive ? "text-[#0a2a55] bg-blue-50" : "text-gray-800 hover:bg-gray-50"}`}
+                      className={({ isActive }) => `block px-5 py-4 text-[14px] font-black rounded-2xl transition-all ${
+                        isActive ? "text-[#0a2a55] bg-blue-50" : "text-slate-800 hover:bg-slate-50"
+                      }`}
                     >
                       {item.label}
                     </NavLink>
                   )}
                 </div>
               ))}
-              <div className="pt-3 mt-1 border-t border-gray-100">
+              <div className="pt-6">
                 <Link
                   to="/contact"
                   onClick={() => setMobileOpen(false)}
-className="block text-center bg-[#0b3061] text-white py-3 rounded-2xl text-sm font-semibold hover:bg-[#0a2a55] transition-colors"                >
+                  className="block text-center bg-[#0a2a55] text-white py-5 rounded-[2rem] text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/30"
+                >
                   Get Free Quote
                 </Link>
               </div>

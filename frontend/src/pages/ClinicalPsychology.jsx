@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet';
 import img1 from "../assets/specialty/consuling.jpg";
 import img2 from '../assets/specialty/psychotriy.jpg';
 import img3 from '../assets/specialty/Therapies.jpg';
-import ServiceBreadCrumbs from '@/components/ServiceBreadcums';
+import ServiceBreadCrumbs from '../components/ServiceBreadcums';
 import EditableText from '../components/EditableText';
 import url_prefix from '../data/variable';
 import { useAuth } from '../hooks/useAuth';
@@ -253,7 +253,7 @@ const FeaturedBanner = ({ title, body, img, imgAlt, reverse = false, page, secti
 /* ═══════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════ */
-export default function PsychiatricServicesDetails() {
+export default function ClinicalPsychology() {
   const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('treatments');
   const [pageContent, setPageContent] = useState({});

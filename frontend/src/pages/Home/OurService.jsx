@@ -1,24 +1,107 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, MessageCircle, CreditCard, DollarSign, Users, Building, Clipboard, UserCheck, Truck, Calendar } from 'lucide-react';
+import { 
+  FileText, 
+  MessageCircle, 
+  CreditCard, 
+  DollarSign, 
+  Users, 
+  Building, 
+  Clipboard, 
+  UserCheck, 
+  Truck, 
+  Calendar,
+  Sparkles,
+  ShieldCheck,
+  ChevronRight,
+  Headphones
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import EditableText from '@/components/EditableText';
 import url_prefix from '@/data/variable';
+import { FaWhatsapp } from 'react-icons/fa';
 
-const ServiceCard = ({ icon: Icon, title, description, bgColor }) => (
-  <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow duration-300">
-    <div className="flex items-start gap-4">
-      <div className={`${bgColor} p-3 rounded-full flex-shrink-0`}>
-        <Icon className="w-6 h-6 text-black" />
+// Animation variants for the services grid
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 0.5, ease: "easeOut" } 
+  }
+};
+
+const ServiceCard = ({ icon: Icon, title, description, isFeatured = false, itemKey }) => (
+  <motion.div 
+    variants={itemVariants}
+    whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(10, 42, 85, 0.1)" }}
+    className={`relative group rounded-3xl p-8 transition-all duration-300 border h-full flex flex-col ${
+      isFeatured 
+        ? "bg-gradient-to-br from-[#0a2a55] to-[#1e3a8a] text-white border-blue-400/20 shadow-2xl lg:col-span-2 overflow-hidden" 
+        : "bg-white/60 backdrop-blur-md border-slate-100 hover:border-blue-200 shadow-sm"
+    }`}
+  >
+    {/* Featured Background Glow */}
+    {isFeatured && (
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/10 rounded-full blur-[80px] pointer-events-none -mr-32 -mt-32" />
+    )}
+
+    <div className={`flex flex-col ${isFeatured ? "md:flex-row md:items-center" : ""} gap-6 flex-1`}>
+      {/* Icon Container */}
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
+        isFeatured 
+          ? "bg-white/10 text-cyan-400 group-hover:scale-110 group-hover:rotate-6" 
+          : "bg-blue-50 text-[#0a2a55] group-hover:bg-[#0a2a55] group-hover:text-white"
+      } transition-all duration-500`}>
+        <Icon size={28} strokeWidth={isFeatured ? 2.5 : 2} />
       </div>
+
       <div className="flex-1">
-        <h3 className="text-gray-800 font-semibold text-base md:text-lg mb-2">
-          {title}
+        <h3 className={`font-black text-xl mb-3 tracking-tight ${isFeatured ? "text-white text-2xl md:text-3xl" : "text-[#0a2a55]"}`}>
+          {typeof title === 'string' ? (
+            <EditableText
+              page="home"
+              section="services"
+              itemKey={`${itemKey}_title`}
+              initialValue={title}
+              value={title}
+              tagName="span"
+            />
+          ) : title}
         </h3>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          {description}
+        <p className={`text-sm leading-relaxed font-semibold transition-colors ${
+          isFeatured ? "text-blue-100/70 text-lg max-w-xl" : "text-slate-500 group-hover:text-slate-600"
+        }`}>
+          {typeof description === 'string' ? (
+            <EditableText
+              page="home"
+              section="services"
+              itemKey={`${itemKey}_description`}
+              initialValue={description}
+              value={description}
+              tagName="p"
+            />
+          ) : description}
         </p>
       </div>
+      
+      {isFeatured && (
+        <div className="hidden md:block ml-auto">
+          <Sparkles className="w-16 h-16 text-cyan-400/20 animate-pulse" />
+        </div>
+      )}
     </div>
-  </div>
+  </motion.div>
 );
 
 const ServicesSection = () => {
@@ -51,121 +134,84 @@ const ServicesSection = () => {
     fetchPageContent();
   }, []);
 
+  // Consolidated & Unique Services List
   const services = [
     {
+      key: 'service_1',
       icon: UserCheck,
       title: getContent('services', 'service_1_title', 'Dedicated Case Manager Included'),
-      description: getContent('services', 'service_1_description', 'A single point of contact to assist you with appointments, coordination, and support.'),
-      bgColor: 'bg-green-300',
-      key: 'service_1'
+      description: getContent('services', 'service_1_description', 'A single point of contact to assist you with appointments, coordination, and support Throughout your treatment.'),
+      isFeatured: true
     },
     {
+      key: 'service_2',
       icon: Users,
-      title: getContent('services', 'service_2_title', 'Doctor Consultation'),
-      description: getContent('services', 'service_2_description', 'Get expert medical opinions and consultations from highly qualified doctors across specialties.'),
-      bgColor: 'bg-green-300',
-      key: 'service_2'
+      title: 'Doctor Consultation',
+      description: 'Get expert medical opinions and consultations from highly qualified doctors across specialties.',
     },
     {
-      icon: CreditCard,
-      title: getContent('services', 'service_3_title', 'Medical Visa Assistance'),
-      description: getContent('services', 'service_3_description', 'Complete support with medical visa documentation and approvals for international patients.'),
-      bgColor: 'bg-green-300',
-      key: 'service_3'
+      key: 'service_3',
+      icon: ShieldCheck,
+      title: 'Medical Visa Assistance',
+      description: 'Complete support with medical visa documentation and approvals for international patients.',
     },
     {
+      key: 'service_4',
       icon: Truck,
-      title: getContent('services', 'service_4_title', 'Travel & Flight Booking'),
-      description: getContent('services', 'service_4_description', 'Hassle-free flight bookings with flexible options for patients and attendants.'),
-      bgColor: 'bg-green-300',
-      key: 'service_4'
+      title: 'Travel & Logistics',
+      description: 'Hassle-free flight bookings and local travel assistance for patients and attendants.',
     },
     {
+      key: 'service_5',
       icon: Building,
-      title: getContent('services', 'service_5_title', 'Accommodation Arrangement'),
-      description: getContent('services', 'service_5_description', 'Comfortable and affordable stay arrangements near hospitals during treatment.'),
-      bgColor: 'bg-green-300',
-      key: 'service_5'
+      title: 'Accommodation',
+      description: 'Comfortable and affordable stay arrangements near hospitals during treatment.',
     },
     {
-      icon: Truck,
-      title: getContent('services', 'service_6_title', 'Local Transportation'),
-      description: getContent('services', 'service_6_description', 'Airport pickup, drop, and local travel assistance throughout your treatment journey.'),
-      bgColor: 'bg-green-300',
-      key: 'service_6'
+      key: 'service_6',
+      icon: Headphones,
+      title: 'Nursing & Post Care',
+      description: 'Professional nursing support and post-treatment care to ensure smooth recovery.',
     },
     {
-      icon: FileText,
-      title: getContent('services', 'service_7_title', 'Nursing & Post Care'),
-      description: getContent('services', 'service_7_description', 'Professional nursing support and post-treatment care to ensure smooth recovery.'),
-      bgColor: 'bg-green-300',
-      key: 'service_7'
-    },
-    {
+      key: 'service_7',
       icon: Calendar,
-      title: getContent('services', 'service_8_title', 'Appointment Scheduling'),
-      description: getContent('services', 'service_8_description', 'Priority appointment scheduling with hospitals and doctors to avoid delays.'),
-      bgColor: 'bg-green-300',
-      key: 'service_8'
+      title: 'Priority Scheduling',
+      description: 'Priority appointment scheduling with hospitals and doctors to avoid delays.',
     },
     {
+      key: 'service_8',
       icon: MessageCircle,
-      title: getContent('services', 'service_9_title', 'Language Interpretation'),
-      description: getContent('services', 'service_9_description', 'Multilingual support to bridge communication gaps during consultations and treatment.'),
-      bgColor: 'bg-green-300',
-      key: 'service_9'
-    },
-
-    {
-      icon: CreditCard,
-      title: "Visa Assistance",
-      description: "Complete medical visa assistance.",
-      bgColor: "bg-green-300"
+      title: 'Interpretation',
+      description: 'Multilingual support to bridge communication gaps during consultations.',
     },
     {
+      key: 'service_9',
       icon: DollarSign,
-      title: "Money Exchange",
-      description: "Convenient currency exchange services in your city.",
-      bgColor: "bg-green-300"
-    },
-    {
-      icon: Users,
-      title: "Interpreters and Translators",
-      description: "Fluent professionals to break language barriers at every step.",
-      bgColor: "bg-green-300"
-    },
-    {
-      icon: Truck,
-      title: "Transportation Assistance",
-      description: "Complimentary airport transfers.",
-      bgColor: "bg-green-300"
-    },
-    {
-      icon: Building,
-      title: "Accommodation Options",
-      description: "Near the hospital and matching your budget and needs.",
-      bgColor: "bg-green-300"
-    },
-    {
-      icon: Clipboard,
-      title: "Admission, Appointment, Pharma Care",
-      description: "Full coordination of medical logistics.",
-      bgColor: "bg-green-300"
-    },
-    {
-      icon: UserCheck,
-      title: "Private Duty Nursing",
-      description: "Arrangements of private nursing care as needed.",
-      bgColor: "bg-green-300"
+      title: 'Money Exchange',
+      description: 'Convenient currency exchange services and financial assistance in your city.',
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-main mb-4">
+    <section className="bg-slate-50 py-24 px-6 md:px-12 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100/50 rounded-full blur-[100px] pointer-events-none -ml-40 -mt-40" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-50/50 rounded-full blur-[120px] pointer-events-none -mr-40 -mb-40" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header Section */}
+        <div className="text-center mb-20">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 bg-[#0a2a55]/5 px-5 py-2 rounded-full text-[#0a2a55] text-[10px] font-black uppercase tracking-[0.2em] mb-6 border border-[#0a2a55]/10"
+          >
+            <Sparkles size={14} className="text-blue-500" />
+            Your Medical Concierge
+          </motion.div>
+          
+          <h2 className="text-4xl md:text-5xl font-black text-[#0a2a55] mb-8 tracking-tighter">
             <EditableText
               page="home"
               section="services_header"
@@ -174,8 +220,9 @@ const ServicesSection = () => {
               value={getContent('services_header', 'title', 'Our Services Cover Every Need')}
               tagName="span"
             />
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto px-4">
+          </h2>
+          
+          <p className="text-slate-500 font-semibold text-lg max-w-3xl mx-auto leading-relaxed">
             <EditableText
               page="home"
               section="services_header"
@@ -188,54 +235,60 @@ const ServicesSection = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
+        >
           {services.map((service) => (
             <ServiceCard
               key={service.key}
+              itemKey={service.key}
               icon={service.icon}
-              title={
-                <EditableText
-                  page="home"
-                  section="services"
-                  itemKey={`${service.key}_title`}
-                  initialValue={service.title}
-                  value={service.title}
-                  tagName="span"
-                />
-              }
-              description={
-                <EditableText
-                  page="home"
-                  section="services"
-                  itemKey={`${service.key}_description`}
-                  initialValue={service.description}
-                  value={service.description}
-                  tagName="span"
-                />
-              }
-              bgColor={service.bgColor}
+              title={service.title}
+              description={service.description}
+              isFeatured={service.isFeatured}
             />
           ))}
-        </div>
+        </motion.div>
 
-        {/* Chat Button */}
-        <div className="flex justify-center mb-6">
-          <button className="bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 flex items-center gap-2 shadow-md">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Chat
-          </button>
-        </div>
+        {/* Bottom CTA Area */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center"
+        >
+          <div className="inline-flex flex-col items-center gap-8">
+            <motion.a 
+              whileHover={{ 
+                scale: 1.05, 
+                boxShadow: "0 25px 50px rgba(34, 197, 94, 0.3)" 
+              }}
+              whileTap={{ scale: 0.98 }}
+              href="https://wa.me/919555447404"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-12 py-5 rounded-[2rem] shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-4 text-sm uppercase tracking-[0.2em]"
+            >
+              <FaWhatsapp size={24} className="animate-pulse" />
+              Chat With Our Team
+              <ChevronRight size={18} />
+            </motion.a>
 
-        {/* Footer Text */}
-        <div className="text-center">
-          <p className="text-gray-700 text-sm sm:text-base">
-            Our services are <span className="font-bold text-gray-900">FREE</span> and by using our services your hospital bill does not increase!
-          </p>
-        </div>
+            <div className="bg-[#0a2a55]/5 border border-slate-100 rounded-3xl p-6 md:px-12 backdrop-blur-md">
+              <p className="text-[#0a2a55] font-semibold text-lg flex flex-col md:flex-row items-center gap-3">
+                <span className="w-8 h-px bg-emerald-500 hidden md:block" />
+                Our help is <span className="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black italic">FREE</span> and by using our services your hospital bill does not increase!
+                <span className="w-8 h-px bg-emerald-500 hidden md:block" />
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Phone, Mail, MapPin, Clock, CheckCircle, Send, User, MessageSquare, ChevronRight, Heart, Shield, Award, FileText } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, CheckCircle, Send, User, MessageSquare, Heart, Shield, Award, FileText, Pill, Activity, Stethoscope } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import { motion, AnimatePresence } from 'framer-motion';
 import url_prefix from "../data/variable";
 
 // ── Social Icons ──
@@ -42,9 +43,7 @@ function ContactForm() {
     try {
       const response = await fetch(`${url_prefix}/contact`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       const data = await response.json();
@@ -66,28 +65,45 @@ function ContactForm() {
 
   const inputStyle = (name) => ({
     width: '100%', padding: '13px 14px 13px 42px',
-    border: focused === name ? '2px solid #0d9488' : '2px solid #e2e8f0',
+    border: focused === name ? '2px solid #1565c0' : '2px solid #e2e8f0',
     borderRadius: '12px', fontSize: '15px', outline: 'none',
-    background: focused === name ? '#f0fdfa' : '#f8fafc',
-    color: '#0f2e2b', transition: 'all 0.25s', boxSizing: 'border-box', fontFamily: 'inherit'
+    background: focused === name ? '#f0f9ff' : '#f8fafc',
+    color: '#0a2a55', transition: 'all 0.25s', boxSizing: 'border-box', fontFamily: 'inherit'
   });
   const labelStyle = {
     display: 'block', fontSize: '12px', fontWeight: '700',
-    color: '#0f766e', marginBottom: '8px', letterSpacing: '0.07em', textTransform: 'uppercase'
+    color: '#0a2a55', marginBottom: '8px', letterSpacing: '0.07em', textTransform: 'uppercase'
   };
   const iconStyle = (name) => ({
     position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
-    color: focused === name ? '#0d9488' : '#94a3b8', transition: 'color 0.2s'
+    color: focused === name ? '#1565c0' : '#94a3b8', transition: 'color 0.2s', zIndex: 1
   });
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+    <motion.form 
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      onSubmit={handleSubmit} 
+      style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
         {[
           { name: 'name', label: 'Full Name', placeholder: 'John Doe', type: 'text', icon: <User size={15} /> },
           { name: 'email', label: 'Email Address', placeholder: 'john@example.com', type: 'email', icon: <Mail size={15} /> }
         ].map(f => (
-          <div key={f.name}>
+          <motion.div key={f.name} variants={itemVariants}>
             <label style={labelStyle}>{f.label}</label>
             <div style={{ position: 'relative' }}>
               <span style={iconStyle(f.name)}>{f.icon}</span>
@@ -95,12 +111,12 @@ function ContactForm() {
                 onChange={handleChange} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')}
                 required style={inputStyle(f.name)} />
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
-        <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+        <motion.div variants={itemVariants}>
           <label style={labelStyle}>Phone Number</label>
           <div style={{ position: 'relative' }}>
             <span style={iconStyle('phone')}><Phone size={15} /></span>
@@ -108,19 +124,21 @@ function ContactForm() {
               onChange={handleChange} onFocus={() => setFocused('phone')} onBlur={() => setFocused('')}
               style={inputStyle('phone')} />
           </div>
-        </div>
-        <div>
+        </motion.div>
+        <motion.div variants={itemVariants}>
           <label style={labelStyle}>Service Needed</label>
-          <select name="service" value={formData.service} onChange={handleChange}
-            onFocus={() => setFocused('service')} onBlur={() => setFocused('')}
-            style={{ ...inputStyle('service'), padding: '13px 14px', color: formData.service ? '#0f2e2b' : '#94a3b8', cursor: 'pointer' }}>
-            <option value="">Select a service...</option>
-            {services.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
+          <div style={{ position: 'relative' }}>
+            <select name="service" value={formData.service} onChange={handleChange}
+              onFocus={() => setFocused('service')} onBlur={() => setFocused('')}
+              style={{ ...inputStyle('service'), padding: '13px 14px', color: formData.service ? '#0a2a55' : '#94a3b8', cursor: 'pointer' }}>
+              <option value="">Select a service...</option>
+              {services.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </motion.div>
       </div>
 
-      <div>
+      <motion.div variants={itemVariants}>
         <label style={labelStyle}>Subject</label>
         <div style={{ position: 'relative' }}>
           <span style={iconStyle('subject')}><MessageSquare size={15} /></span>
@@ -128,9 +146,9 @@ function ContactForm() {
             onChange={handleChange} onFocus={() => setFocused('subject')} onBlur={() => setFocused('')}
             style={inputStyle('subject')} />
         </div>
-      </div>
+      </motion.div>
 
-      <div>
+      <motion.div variants={itemVariants}>
         <label style={labelStyle}>Your Message</label>
         <textarea name="message" rows={5}
           placeholder="Describe your mental health needs, questions, or how we can assist you..."
@@ -139,34 +157,33 @@ function ContactForm() {
           required
           style={{
             width: '100%', padding: '14px',
-            border: focused === 'message' ? '2px solid #0d9488' : '2px solid #e2e8f0',
+            border: focused === 'message' ? '2px solid #1565c0' : '2px solid #e2e8f0',
             borderRadius: '12px', fontSize: '15px', outline: 'none', resize: 'vertical',
-            background: focused === 'message' ? '#f0fdfa' : '#f8fafc',
-            color: '#0f2e2b', transition: 'all 0.25s', boxSizing: 'border-box',
+            background: focused === 'message' ? '#f0f9ff' : '#f8fafc',
+            color: '#0a2a55', transition: 'all 0.25s', boxSizing: 'border-box',
             fontFamily: 'inherit', lineHeight: '1.6'
           }} />
-        <div style={{ textAlign: 'right', fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>{formData.message.length}/500</div>
-      </div>
+      </motion.div>
 
-      <button type="submit" style={{
-        width: '100%', padding: '16px 32px',
-        background: submitted ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0f766e, #0d9488)',
-        color: 'white', border: 'none', borderRadius: '14px',
-        fontSize: '16px', fontWeight: '700', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-        transition: 'all 0.3s', letterSpacing: '0.02em',
-        boxShadow: submitted ? '0 8px 25px rgba(16,185,129,0.35)' : '0 8px 28px rgba(13,148,136,0.4)',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(13,148,136,0.5)'; }}
+      <motion.button 
+        variants={itemVariants}
+        whileHover={{ scale: 1.01, boxShadow: '0 15px 40px rgba(10,42,85,0.2)' }}
+        whileTap={{ scale: 0.99 }}
+        type="submit" 
+        style={{
+          width: '100%', padding: '16px 32px',
+          background: submitted ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0a2a55, #1565c0)',
+          color: 'white', border: 'none', borderRadius: '14px',
+          fontSize: '16px', fontWeight: '700', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+          transition: 'all 0.3s', letterSpacing: '0.02em',
+          boxShadow: submitted ? '0 8px 25px rgba(16,185,129,0.35)' : '0 8px 28px rgba(10,42,85,0.3)',
+        }}
         disabled={loading || submitted}
       >
         {loading ? 'Sending...' : submitted ? <><CheckCircle size={20} /> Message Sent Successfully!</> : <><Send size={20} /> Send Message</>}
-      </button>
-
-      <p style={{ textAlign: 'center', fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-        🔒 Your information is secure and will never be shared with third parties.
-      </p>
-    </form>
+      </motion.button>
+    </motion.form>
   );
 }
 
@@ -185,23 +202,23 @@ function GSTBadge() {
 
   return (
     <>
-      {/* ── Badge Card ── */}
-      <div onClick={() => setShowModal(true)} style={{
-        background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 55%, #14b8a6 100%)',
-        borderRadius: '20px', padding: '24px 26px', cursor: 'pointer',
-        position: 'relative', overflow: 'hidden',
-        boxShadow: '0 16px 48px rgba(15,118,110,0.35)',
-        transition: 'transform 0.3s, box-shadow 0.3s',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(15,118,110,0.45)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(15,118,110,0.35)'; }}
+      <motion.div 
+        onClick={() => setShowModal(true)} 
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        whileHover={{ y: -4, boxShadow: '0 24px 60px rgba(10,42,85,0.25)' }}
+        style={{
+          background: 'linear-gradient(135deg, #05162e 0%, #0a2a55 55%, #1565c0 100%)',
+          borderRadius: '20px', padding: '24px 26px', cursor: 'pointer',
+          position: 'relative', overflow: 'hidden',
+          boxShadow: '0 16px 48px rgba(10,42,85,0.15)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+        }}
       >
-        {/* dot grid */}
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-        {/* ghost GST */}
         <div style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', fontSize: '96px', fontWeight: '900', color: 'rgba(255,255,255,0.06)', lineHeight: 1, pointerEvents: 'none', letterSpacing: '-4px', userSelect: 'none' }}>GST</div>
 
-        {/* Top */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px', position: 'relative' }}>
           <div style={{ width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0, background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Shield size={20} color="white" />
@@ -212,22 +229,24 @@ function GSTBadge() {
           </div>
         </div>
 
-        {/* GSTIN */}
         <div style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: '12px', padding: '12px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', position: 'relative' }}>
           <div>
             <div style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>GSTIN</div>
             <div style={{ fontSize: '16px', fontWeight: '800', color: 'white', letterSpacing: '0.12em', fontFamily: 'monospace' }}>{GSTIN}</div>
           </div>
-          <button onClick={copyGST} style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.28)', color: 'white', padding: '7px 13px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={copyGST} 
+            style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.28)', color: 'white', padding: '7px 13px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+          >
             {copied ? '✓ Copied' : 'Copy'}
-          </button>
+          </motion.button>
         </div>
 
-        {/* Pills */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', position: 'relative' }}>
           {[{ label: 'Active', dot: true }, { label: 'Regular Taxpayer' }, { label: 'New Delhi' }].map((p, i) => (
             <div key={i} style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50px', padding: '4px 11px', color: 'rgba(255,255,255,0.85)', fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              {p.dot && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', animation: 'blink 2s infinite' }} />}
+              {p.dot && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }} />}
               {p.label}
             </div>
           ))}
@@ -236,117 +255,141 @@ function GSTBadge() {
         <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.68)', fontSize: '12px', fontWeight: '600', position: 'relative' }}>
           <FileText size={12} /> View Full Certificate →
         </div>
-      </div>
+      </motion.div>
 
-      {/* ── Full Certificate Modal ── */}
-      {showModal && (
-        <div onClick={() => setShowModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(4,47,46,0.80)', backdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#f0fdfa', borderRadius: '24px', maxWidth: '740px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 40px 100px rgba(15,118,110,0.45)', animation: 'slideUp 0.3s ease' }}>
-
-            {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg, #0f766e, #0d9488)', padding: '24px 28px', borderRadius: '24px 24px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '11px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={20} color="white" /></div>
-                <div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.62)', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Form GST REG-06 [See Rule 10(1)]</div>
-                  <div style={{ fontSize: '15px', color: 'white', fontWeight: '700' }}>GST Registration Certificate</div>
-                </div>
-              </div>
-              <button onClick={() => setShowModal(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', lineHeight: 1 }}>×</button>
-            </div>
-
-            {/* Govt Banner */}
-            <div style={{ background: 'white', borderBottom: '3px solid #14b8a6', padding: '16px 28px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: '0 4px 12px rgba(245,158,11,0.4)' }}>🇮🇳</div>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#042f2e' }}>Government of India</div>
-                <div style={{ fontSize: '12px', color: '#5eada6', marginTop: '2px' }}>Goods and Services Tax Network — Registration Certificate</div>
-              </div>
-              <div style={{ marginLeft: 'auto', background: '#ccfbf1', border: '1px solid #5eada6', borderRadius: '10px', padding: '9px 14px', textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: '10px', color: '#0f766e', fontWeight: '700', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Registration No.</div>
-                <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f766e', letterSpacing: '0.1em', marginTop: '2px', fontFamily: 'monospace' }}>{GSTIN}</div>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div style={{ padding: '18px 28px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  {[
-                    [1, 'Legal Name', <strong style={{ color: '#0f766e', fontSize: '14px' }}>MEDICWAY CARE PRIVATE LIMITED</strong>],
-                    [2, 'Trade Name, if any', 'MEDICWAY CARE PRIVATE LIMITED'],
-                    [3, 'Additional Trade Names', <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>—</span>],
-                    [4, 'Constitution of Business', <span style={{ background: '#e0f2fe', border: '1px solid #7dd3fc', color: '#0369a1', padding: '3px 11px', borderRadius: '50px', fontSize: '12px', fontWeight: '600' }}>Private Limited Company</span>],
-                    [5, 'Address of Principal Place',
-                      <span style={{ lineHeight: '1.7' }}>
-                        <strong style={{ display: 'block', color: '#042f2e' }}>MR-1, 5th Floor, Wing-A</strong>
-                        Statesman House, 148, Barakhamba Road<br />New Delhi, Delhi — 110001
-                      </span>
-                    ],
-                    [6, 'Date of Liability', <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>—</span>],
-                    [7, 'Period of Validity',
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                        <div><div style={{ fontSize: '10px', color: '#5eada6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>From</div><div style={{ fontWeight: '700', color: '#042f2e', fontSize: '14px' }}>07 / 01 / 2026</div></div>
-                        <span style={{ color: '#94a3b8' }}>→</span>
-                        <div><div style={{ fontSize: '10px', color: '#5eada6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To</div><div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>Not Applicable</div></div>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', padding: '4px 11px', borderRadius: '50px', fontSize: '11px', fontWeight: '700' }}>
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', animation: 'blink 2s infinite' }} />Active
-                        </span>
-                      </div>
-                    ],
-                    [8, 'Type of Registration', <span style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', padding: '3px 11px', borderRadius: '50px', fontSize: '12px', fontWeight: '700' }}>Regular</span>],
-                    [9, 'Particulars of Approving', 'Centre'],
-                  ].map(([num, label, val]) => (
-                    <tr key={num} style={{ borderBottom: '1px solid #d1fae5' }}>
-                      <td style={{ padding: '12px 8px', fontSize: '12px', color: '#5eada6', fontWeight: '600', width: '32px', verticalAlign: 'top' }}>{num}</td>
-                      <td style={{ padding: '12px 13px', fontSize: '12px', fontWeight: '600', color: '#134e4a', background: 'rgba(204,251,241,0.35)', width: '185px', verticalAlign: 'top' }}>{label}</td>
-                      <td style={{ padding: '12px 13px', fontSize: '13px', color: '#0f2e2b', verticalAlign: 'top', lineHeight: '1.6' }}>{val}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Signatory */}
-            <div style={{ margin: '0 28px 18px', background: 'white', borderRadius: '14px', border: '1px solid #d1fae5', padding: '18px 22px' }}>
-              <div style={{ fontSize: '10px', fontWeight: '700', color: '#5eada6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>Authorised Signatory</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '13px' }}>
-                {[['Name', 'Sudhanshu Singh'], ['Designation', 'Superintendent'], ['Jurisdictional Office', 'Connaught Place'], ['Date of Issue', '07 / 01 / 2026'], ['Signature Status', '✓ Digitally Signed'], ['Authority', 'GSTN Network']].map(([l, v], i) => (
-                  <div key={i}>
-                    <div style={{ fontSize: '10px', color: '#5eada6', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '3px' }}>{l}</div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: i === 4 ? '#0d9488' : '#042f2e' }}>{v}</div>
+      <AnimatePresence>
+        {showModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowModal(false)} 
+            style={{ position: 'fixed', inset: 0, background: 'rgba(5,22,46,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              onClick={e => e.stopPropagation()} 
+              style={{ background: '#f8fafc', borderRadius: '24px', maxWidth: '740px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 40px 100px rgba(5,22,46,0.4)', position: 'relative' }}
+            >
+              <div style={{ background: 'linear-gradient(135deg, #05162e, #0a2a55)', padding: '24px 28px', borderRadius: '24px 24px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '11px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={20} color="white" /></div>
+                  <div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.62)', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Form GST REG-06 [See Rule 10(1)]</div>
+                    <div style={{ fontSize: '15px', color: 'white', fontWeight: '700' }}>GST Registration Certificate</div>
                   </div>
-                ))}
+                </div>
+                <button onClick={() => setShowModal(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', lineHeight: 1 }}>×</button>
               </div>
-            </div>
 
-            {/* Original doc ref */}
-            <div style={{ margin: '0 28px 18px', background: 'white', borderRadius: '13px', border: '1px solid #d1fae5', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: '56px', height: '72px', borderRadius: '8px', background: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)', border: '2px solid #5eada6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', flexShrink: 0 }}>📄</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: '#042f2e' }}>Original GST Certificate</div>
-                <div style={{ fontSize: '11px', color: '#5eada6', marginTop: '3px' }}>Government issued · Digitally signed · Form GST REG-06</div>
-                <div style={{ marginTop: '7px', display: 'flex', gap: '7px' }}>
-                  <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 9px', borderRadius: '50px', fontSize: '10px', fontWeight: '700' }}>✓ Verified</span>
-                  <span style={{ background: '#dbeafe', color: '#1d4ed8', padding: '2px 9px', borderRadius: '50px', fontSize: '10px', fontWeight: '600' }}>Official Document</span>
+              <div style={{ background: 'white', borderBottom: '3px solid #1565c0', padding: '16px 28px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: '0 4px 12px rgba(245,158,11,0.4)' }}>🇮🇳</div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#0a2a55' }}>Government of India</div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Goods and Services Tax Network — Registration Certificate</div>
+                </div>
+                <div style={{ marginLeft: 'auto', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '9px 14px', textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '10px', color: '#1e40af', fontWeight: '700', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Registration No.</div>
+                  <div style={{ fontSize: '13px', fontWeight: '800', color: '#1e40af', letterSpacing: '0.1em', marginTop: '2px', fontFamily: 'monospace' }}>{GSTIN}</div>
                 </div>
               </div>
-              <button onClick={() => window.open('/assets/gst-certificate.png', '_blank')} style={{ background: 'linear-gradient(135deg, #0f766e, #0d9488)', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '9px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>View Original</button>
-            </div>
 
-            {/* Note */}
-            <div style={{ margin: '0 28px 26px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '11px', padding: '12px 16px', fontSize: '12px', color: '#92400e', lineHeight: '1.7' }}>
-              <strong>📌 Note:</strong> The registration certificate is required to be prominently displayed at all places of business in the State. This is a system generated digitally signed Registration Certificate issued based on the approval of application granted on 07/01/2026 by the jurisdictional authority.
-            </div>
-          </div>
-        </div>
-      )}
+              <div style={{ padding: '18px 28px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    {[
+                      [1, 'Legal Name', <strong style={{ color: '#0a2a55', fontSize: '14px' }}>MEDICWAY CARE PRIVATE LIMITED</strong>],
+                      [2, 'Trade Name, if any', 'MEDICWAY CARE PRIVATE LIMITED'],
+                      [3, 'Additional Trade Names', <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>—</span>],
+                      [4, 'Constitution of Business', <span style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', padding: '3px 11px', borderRadius: '50px', fontSize: '12px', fontWeight: '600' }}>Private Limited Company</span>],
+                      [5, 'Address of Principal Place',
+                        <span style={{ lineHeight: '1.7' }}>
+                          <strong style={{ display: 'block', color: '#0a2a55' }}>MR-1, 5th Floor, Wing-A</strong>
+                          Statesman House, 148, Barakhamba Road<br />New Delhi, Delhi — 110001
+                        </span>
+                      ],
+                      [6, 'Date of Liability', <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>—</span>],
+                      [7, 'Period of Validity',
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                          <div><div style={{ fontSize: '10px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>From</div><div style={{ fontWeight: '700', color: '#0a2a55', fontSize: '14px' }}>07 / 01 / 2026</div></div>
+                          <span style={{ color: '#94a3b8' }}>→</span>
+                          <div><div style={{ fontSize: '10px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To</div><div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>Not Applicable</div></div>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', padding: '4px 11px', borderRadius: '50px', fontSize: '11px', fontWeight: '700' }}>
+                            <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }} />Active
+                          </span>
+                        </div>
+                      ],
+                      [8, 'Type of Registration', <span style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', padding: '3px 11px', borderRadius: '50px', fontSize: '12px', fontWeight: '700' }}>Regular</span>],
+                      [9, 'Particulars of Approving', 'Centre'],
+                    ].map(([num, label, val]) => (
+                      <tr key={num} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '12px 8px', fontSize: '12px', color: '#64748b', fontWeight: '600', width: '32px', verticalAlign: 'top' }}>{num}</td>
+                        <td style={{ padding: '12px 13px', fontSize: '12px', fontWeight: '600', color: '#0a2a55', background: 'rgba(239,246,255,0.4)', width: '185px', verticalAlign: 'top' }}>{label}</td>
+                        <td style={{ padding: '12px 13px', fontSize: '13px', color: '#0f172a', verticalAlign: 'top', lineHeight: '1.6' }}>{val}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ margin: '0 28px 18px', background: 'white', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '18px 22px' }}>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>Authorised Signatory</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '13px' }}>
+                  {[['Name', 'Sudhanshu Singh'], ['Designation', 'Superintendent'], ['Jurisdictional Office', 'Connaught Place'], ['Date of Issue', '07 / 01 / 2026'], ['Signature Status', '✓ Digitally Signed'], ['Authority', 'GSTN Network']].map(([l, v], i) => (
+                    <div key={i}>
+                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '3px' }}>{l}</div>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: i === 4 ? '#1565c0' : '#0a2a55' }}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ margin: '0 28px 18px', background: 'white', borderRadius: '13px', border: '1px solid #e2e8f0', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '56px', height: '72px', borderRadius: '8px', background: 'linear-gradient(135deg, #f8fafc, #eff6ff)', border: '2px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', flexShrink: 0 }}>📄</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#0a2a55' }}>Original GST Certificate</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>Government issued · Digitally signed · Form GST REG-06</div>
+                  <div style={{ marginTop: '7px', display: 'flex', gap: '7px' }}>
+                    <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 9px', borderRadius: '50px', fontSize: '10px', fontWeight: '700' }}>✓ Verified</span>
+                    <span style={{ background: '#dbeafe', color: '#1d4ed8', padding: '2px 9px', borderRadius: '50px', fontSize: '10px', fontWeight: '600' }}>Official Document</span>
+                  </div>
+                </div>
+                <button onClick={() => window.open('/assets/gst-certificate.png', '_blank')} style={{ background: 'linear-gradient(135deg, #0a2a55, #1565c0)', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '9px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>View Original</button>
+              </div>
+
+              <div style={{ margin: '0 28px 26px', background: '#fff9db', border: '1px solid #ffe066', borderRadius: '11px', padding: '12px 16px', fontSize: '12px', color: '#856404', lineHeight: '1.7' }}>
+                <strong>📌 Note:</strong> The registration certificate is required to be prominently displayed at all places of business in the State. This is a system generated digitally signed Registration Certificate issued based on the approval of application granted on 07/01/2026 by the jurisdictional authority.
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
 
 // ── Main Contact Page ──
 export default function Contact() {
+  const containerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { 
+        duration: 0.8, 
+        ease: [0.6, 0.05, -0.01, 0.9],
+        staggerChildren: 0.2
+      } 
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <>
       <Helmet>
@@ -356,216 +399,177 @@ export default function Contact() {
       </Helmet>
 
       <style>{`
-        @keyframes floatUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
         @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        @keyframes slideUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes pulse-ring {
-          0%{box-shadow:0 0 0 0 rgba(13,148,136,0.35)}
-          70%{box-shadow:0 0 0 10px rgba(13,148,136,0)}
-          100%{box-shadow:0 0 0 0 rgba(13,148,136,0)}
-        }
         .c-card {
-          background: white; border-radius: 18px; padding: 20px 22px;
-          box-shadow: 0 4px 20px rgba(15,118,110,0.07);
-          border: 1px solid rgba(13,148,136,0.12);
-          transition: transform 0.3s, box-shadow 0.3s;
+          background: white; border-radius: 20px; padding: 24px;
+          box-shadow: 0 4px 24px rgba(10,42,85,0.05);
+          border: 1px solid rgba(13,42,85,0.08);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
         }
-        .c-card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(13,148,136,0.16); }
+        .c-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(10,42,85,0.12); border-color: rgba(15,101,192,0.3); }
         .hero-badge {
           display: inline-flex; align-items: center; gap: 8px;
-          background: rgba(20,184,166,0.15); border: 1px solid rgba(20,184,166,0.3);
-          color: #5eefea; padding: 7px 17px; border-radius: 50px;
-          font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 18px;
+          background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+          color: #93c5fd; padding: 7px 18px; border-radius: 50px;
+          font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 28px;
+          backdrop-filter: blur(8px);
         }
         .social-btn {
-          width: 42px; height: 42px; border-radius: 12px;
+          width: 44px; height: 44px; border-radius: 14px;
           display: flex; align-items: center; justify-content: center;
-          text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+          text-decoration: none; transition: all 0.3s;
         }
-        .social-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .social-btn:hover { transform: translateY(-4px) rotate(5deg); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .icon-wrap {
-          width: 48px; height: 48px; border-radius: 13px; flex-shrink: 0;
+          width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          animation: pulse-ring 3s infinite;
+          position: relative; overflow: hidden;
         }
-        .section-bar { width: 42px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #0f766e, #14b8a6); margin: 11px 0 14px; }
+        .icon-wrap::after {
+          content: ""; position: absolute; inset: 0; 
+          background: currentColor; opacity: 0.12;
+        }
+        .section-bar { width: 48px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #0a2a55, #1565c0); margin: 12px 0 16px; }
+        .medical-element {
+          position: absolute; pointer-events: none; opacity: 0.04; color: white;
+        }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#f0fdfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
         {/* Hero */}
-        <section style={{ background: 'linear-gradient(135deg, #042f2e 0%, #0f766e 50%, #0d9488 100%)', padding: '88px 24px 60px', position: 'relative', overflow: 'hidden' }}>
-          {[{ s: 420, t: '-160px', r: '-110px', o: 0.06 }, { s: 260, b: '-90px', l: '-70px', o: 0.08 }, { s: 160, t: '30px', l: '12%', o: 0.05 }].map((c, i) => (
-            <div key={i} style={{ position: 'absolute', width: c.s, height: c.s, borderRadius: '50%', border: '2px solid white', opacity: c.o, top: c.t, bottom: c.b, left: c.l, right: c.r, pointerEvents: 'none' }} />
-          ))}
-          <div style={{ position: 'absolute', top: '50%', right: '7%', transform: 'translateY(-50%)', opacity: 0.06, pointerEvents: 'none' }}>
-            <svg width="210" height="210" viewBox="0 0 100 100" fill="white"><rect x="35" y="5" width="30" height="90" rx="8" /><rect x="5" y="35" width="90" height="30" rx="8" /></svg>
-          </div>
-          <div style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center', position: 'relative', animation: 'floatUp 0.8s ease both' }}>
-            <div className="hero-badge"><Heart size={13} fill="currentColor" /> We Care For You</div>
-            <h1 style={{ fontFamily: "'Lora', serif", fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', fontWeight: '600', color: 'white', margin: '0 0 16px', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-              Get In Touch With<br />
-              <span style={{ background: 'linear-gradient(90deg, #5eefea, #99f6e4, #5eefea)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s linear infinite' }}>Our Care Team</span>
-            </h1>
-            <p style={{ fontSize: '1.05rem', color: 'rgba(255,255,255,0.72)', maxWidth: '540px', margin: '0 auto 36px', lineHeight: 1.75 }}>
-              Have questions about our mental health services? Need help finding the right psychologist? We're here every step of your wellness journey.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {['24/7 Support', '200+ Clinics', '50,000+ Patients', '10+ Specializations'].map((s, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.11)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '50px', padding: '9px 18px', color: 'white', fontSize: '13px', fontWeight: '600' }}>{s}</div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <section style={{ background: 'linear-gradient(135deg, #05162e 0%, #0a2a55 50%, #1565c0 100%)', padding: '120px 24px 90px', position: 'relative', overflow: 'hidden' }}>
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} className="medical-element" style={{ top: '10%', left: '5%' }}><Activity size={200} /></motion.div>
+          <motion.div animate={{ y: [0, -30, 0], opacity: [0.03, 0.06, 0.03] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="medical-element" style={{ bottom: '15%', right: '10%' }}><Stethoscope size={160} /></motion.div>
+          <motion.div animate={{ scale: [1, 1.3, 1], rotate: [0, 15, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="medical-element" style={{ top: '25%', right: '20%' }}><Pill size={120} /></motion.div>
 
-        {/* Wave divider */}
-        <div style={{ marginTop: '-2px', lineHeight: 0 }}>
-          <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '100%' }}>
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,0 L0,0 Z" fill="url(#tealGrad)" />
-            <defs><linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#042f2e" /><stop offset="50%" stopColor="#0f766e" /><stop offset="100%" stopColor="#0d9488" /></linearGradient></defs>
-          </svg>
-        </div>
+          <div style={{ position: 'absolute', top: '50%', right: '7%', transform: 'translateY(-50%)', opacity: 0.08, pointerEvents: 'none' }}>
+            <svg width="280" height="280" viewBox="0 0 100 100" fill="white"><rect x="35" y="5" width="30" height="90" rx="4" /><rect x="5" y="35" width="90" height="30" rx="4" /></svg>
+          </div>
+
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', position: 'relative' }}>
+            <motion.div variants={itemVariants} className="hero-badge">
+              <Heart size={14} fill="currentColor" style={{ marginRight: '6px' }} /> Premium Clinical Support
+            </motion.div>
+            <motion.h1 variants={itemVariants} style={{ fontFamily: "'Lora', serif", fontSize: 'clamp(2.6rem, 7vw, 4.2rem)', fontWeight: '600', color: 'white', margin: '0 0 24px', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
+              We're Dedicated to Your<br />
+              <span style={{ 
+                background: 'linear-gradient(90deg, #93c5fd, #e0f2fe, #93c5fd)', 
+                backgroundSize: '200% auto', 
+                WebkitBackgroundClip: 'text', 
+                WebkitTextFillColor: 'transparent', 
+                animation: 'shimmer 4s linear infinite' 
+              }}>Mental Wellness</span>
+            </motion.h1>
+            <motion.p variants={itemVariants} style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.8)', maxWidth: '600px', margin: '0 auto 48px', lineHeight: 1.8 }}>
+              Expert psychology consultations and therapy services are just a message away. Connect with our dedicated professionals today.
+            </motion.p>
+            <motion.div variants={itemVariants} style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {['24/7 Availability', 'Expert Guidance', 'Secure & Private', 'Award Winning'].map((s, i) => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px 22px', color: 'white', fontSize: '14px', fontWeight: '700' }}>{s}</div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </section>
 
         {/* Main Grid */}
-        <section style={{ padding: '52px 24px 80px' }}>
+        <section style={{ padding: '80px 24px 120px', marginTop: '-40px' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '370px 1fr', gap: '34px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '48px', alignItems: 'start' }}>
 
               {/* LEFT COLUMN */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-
+              <motion.div 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+              >
                 <div>
-                  <h2 style={{ fontFamily: "'Lora', serif", fontSize: '1.65rem', fontWeight: '600', color: '#042f2e', margin: 0 }}>Contact Information</h2>
+                  <h2 style={{ fontFamily: "'Lora', serif", fontSize: '2rem', fontWeight: '600', color: '#0a2a55', margin: 0 }}>Get in Touch</h2>
                   <div className="section-bar" />
-                  <p style={{ color: '#5eada6', fontSize: '14px', margin: 0, lineHeight: 1.65 }}>Reach out through any of our channels. Our team responds promptly.</p>
+                  <p style={{ color: '#64748b', fontSize: '16px', margin: 0, lineHeight: 1.8 }}>Our administrative team is here to help you navigate your mental health care. Reach out via any channel below.</p>
                 </div>
 
-                {/* Info cards */}
-                {[
-                  { icon: <Phone size={19} />, title: 'Phone', lines: ['+91 98110 00723 ', '+91 99537 30709'], bg: 'linear-gradient(135deg, #dbeafe, #bfdbfe)', color: '#2563eb' },
-                  { icon: <Mail size={19} />, title: 'Email', lines: ['info@medicwaycare.in', 'support@medicwaycare.in'], bg: 'linear-gradient(135deg, #ccfbf1, #99f6e4)', color: '#0f766e' },
-                  { icon: <MapPin size={19} />, title: 'Address', lines: ['MR-1, 5th Floor, Wing-A, Statesman House', '148 Barakhamba Road, New Delhi 110001'], bg: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', color: '#16a34a' },
-                  { icon: <Clock size={19} />, title: 'Business Hours', lines: ['Mon–Fri: 9:00 AM – 6:00 PM', 'Sat: 9:00 AM – 2:00 PM', 'Sun: Emergency Only'], bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', color: '#d97706' },
-                ].map((item, i) => (
-                  <div key={i} className="c-card" style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
-                    <div className="icon-wrap" style={{ background: item.bg, color: item.color }}>{item.icon}</div>
-                    <div>
-                      <h3 style={{ margin: '0 0 5px', fontSize: '14px', fontWeight: '700', color: '#042f2e' }}>{item.title}</h3>
-                      {item.lines.map((l, j) => <p key={j} style={{ margin: '2px 0', fontSize: '13px', color: '#5eada6' }}>{l}</p>)}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Why Choose Us */}
-                {/* <div className="c-card" style={{ background:'linear-gradient(135deg, #042f2e, #0f766e)', border:'none' }}>
-                  <h3 style={{ fontFamily:"'Lora', serif", fontSize:'1rem', fontWeight:'600', color:'white', margin:'0 0 13px' }}>Why Choose Us?</h3>
-                  {['24/7 Customer Support','Verified Healthcare Providers','Transparent Pricing','End-to-End Assistance','Multilingual Support'].map((item,i,arr) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:i<arr.length-1?'1px solid rgba(255,255,255,0.08)':'none' }}>
-                      <div style={{ width:'21px', height:'21px', borderRadius:'50%', background:'rgba(20,184,166,0.25)', border:'1px solid rgba(20,184,166,0.5)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                        <CheckCircle size={12} color="#5eefea"/>
+                <div style={{ display: 'grid', gap: '20px' }}>
+                  {[
+                    { icon: <Phone size={22} />, title: 'Call Center', lines: ['+91 93547 99090', '+91 99537 30709'], color: '#1565c0' },
+                    { icon: <Mail size={22} />, title: 'Official Email', lines: ['care@medicwaycare.in', 'support@medicwaycare.in'], color: '#0a2a55' },
+                    { icon: <MapPin size={22} />, title: 'Visit Office', lines: ['Statesman House, 148, Barakhamba Road', 'New Delhi — 110001'], color: '#ef4444' },
+                  ].map((item, i) => (
+                    <motion.div 
+                      key={i} 
+                      className="c-card" 
+                      whileHover={{ scale: 1.02 }}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}
+                    >
+                      <div className="icon-wrap" style={{ color: item.color }}>{item.icon}</div>
+                      <div>
+                        <h3 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: '800', color: '#0a2a55' }}>{item.title}</h3>
+                        {item.lines.map((l, j) => <p key={j} style={{ margin: '2px 0', fontSize: '15px', color: '#64748b', fontWeight: '500' }}>{l}</p>)}
                       </div>
-                      <span style={{ fontSize:'13px', color:'rgba(255,255,255,0.85)', fontWeight:'500', flex:1 }}>{item}</span>
-                      <ChevronRight size={12} color="rgba(255,255,255,0.3)"/>
-                    </div>
+                    </motion.div>
                   ))}
-                </div> */}
+                </div>
 
-                {/* GST Proof Badge */}
                 <GSTBadge />
 
-                {/* Social */}
-                <div className="c-card">
-                  <h3 style={{ fontFamily: "'Lora', serif", fontSize: '1rem', fontWeight: '600', color: '#042f2e', margin: '0 0 14px' }}>Connect With Us</h3>
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '13px' }}>
-                    <a href="https://www.facebook.com/share/1LEebindtd/" target="_blank" rel="noopener noreferrer" className="social-btn" style={{ background: '#dbeafe', color: '#2563eb' }}><FacebookIcon /></a>
-                    <a href="https://www.instagram.com/medicwaycare?igsh=MXU4MWZyZTFrdHV3Yw==" target="_blank" rel="noopener noreferrer" className="social-btn" style={{ background: '#fce7f3', color: '#db2777' }}><InstagramIcon /></a>
-                    <a href="https://www.youtube.com/@MedicwayCare" target="_blank" rel="noopener noreferrer" className="social-btn" style={{ background: '#fee2e2', color: '#dc2626' }}><YoutubeIcon /></a>
+                <div className="c-card" style={{ background: '#f8fafc' }}>
+                  <h3 style={{ fontFamily: "'Lora', serif", fontSize: '1.1rem', fontWeight: '600', color: '#0a2a55', margin: '0 0 20px' }}>Follow Us</h3>
+                  <div style={{ display: 'flex', gap: '14px', marginBottom: '24px' }}>
+                    <a href="https://facebook.com" className="social-btn" style={{ background: '#eff6ff', color: '#1565c0' }}><FacebookIcon /></a>
+                    <a href="https://instagram.com" className="social-btn" style={{ background: '#fff1f2', color: '#ef4444' }}><InstagramIcon /></a>
+                    <a href="https://youtube.com" className="social-btn" style={{ background: '#fef2f2', color: '#dc2626' }}><YoutubeIcon /></a>
                   </div>
-                  <a href="https://wa.me/919354799090" target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: 'white', borderRadius: '12px', padding: '12px 18px', textDecoration: 'none', fontWeight: '700', fontSize: '14px', boxShadow: '0 6px 20px rgba(34,197,94,0.35)', transition: 'transform 0.2s, box-shadow 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(34,197,94,0.45)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(34,197,94,0.35)'; }}>
-                    <WhatsappIcon /> Chat on WhatsApp
-                  </a>
+                  <motion.a 
+                    href="https://wa.me/919354799090" 
+                    whileHover={{ scale: 1.03, boxShadow: '0 12px 30px rgba(34,197,94,0.4)' }}
+                    whileTap={{ scale: 0.97 }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: 'white', borderRadius: '14px', padding: '16px', textDecoration: 'none', fontWeight: '800', fontSize: '15px', boxShadow: '0 8px 24px rgba(34,197,94,0.3)' }}
+                  >
+                    <WhatsappIcon /> Instant WhatsApp Chat
+                  </motion.a>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* RIGHT: Form */}
-              <div style={{ background: 'white', borderRadius: '24px', boxShadow: '0 8px 40px rgba(15,118,110,0.12)', border: '1px solid rgba(13,148,136,0.1)', overflow: 'hidden' }}>
-                {/* Form header */}
-                <div style={{ background: 'linear-gradient(135deg, #0f766e, #0d9488)', padding: '32px 36px 28px', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '120px', height: '120px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', bottom: '-20px', left: '40px', width: '80px', height: '80px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', position: 'relative' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '13px', background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Send size={20} color="white" />
-                    </div>
-                    <div>
-                      <h2 style={{ fontFamily: "'Lora', serif", fontSize: '1.45rem', fontWeight: '600', color: 'white', margin: '0 0 3px' }}>Send Us a Message</h2>
-                      <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '13px', margin: 0 }}>We typically respond within 2–4 hours</p>
-                    </div>
-                  </div>
-                  <div style={{ marginTop: '18px', display: 'flex', gap: '14px', position: 'relative' }}>
-                    {[{ label: 'Avg. Response', value: '< 2 hrs' }, { label: 'Satisfaction', value: '98.5%' }, { label: 'Cases Handled', value: '50K+' }].map((s, i) => (
-                      <div key={i} style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '10px', padding: '9px 13px', flex: 1, textAlign: 'center' }}>
-                        <div style={{ color: 'white', fontWeight: '800', fontSize: '15px' }}>{s.value}</div>
-                        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', fontWeight: '500', marginTop: '2px' }}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
+              {/* RIGHT COLUMN: Form */}
+              <motion.div 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                style={{ background: 'white', borderRadius: '32px', boxShadow: '0 20px 60px rgba(10,42,85,0.08)', border: '1px solid rgba(13,42,85,0.06)', overflow: 'hidden' }}
+              >
+                <div style={{ background: 'linear-gradient(135deg, #0a2a55, #1565c0)', padding: '48px 48px 40px', position: 'relative', overflow: 'hidden' }}>
+                   <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                     <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                       <Send size={26} color="white" />
+                     </div>
+                     <div>
+                       <h2 style={{ fontFamily: "'Lora', serif", fontSize: '1.8rem', fontWeight: '600', color: 'white', margin: '0 0 6px' }}>Send Message</h2>
+                       <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '15px', margin: 0 }}>Usually responds in under 2 hours</p>
+                     </div>
+                   </div>
                 </div>
-
-                {/* Trust strip */}
-                <div style={{ background: '#f0fdfa', borderBottom: '1px solid #ccfbf1', padding: '13px 36px', display: 'flex', alignItems: 'center', gap: '22px', flexWrap: 'wrap' }}>
-                  {[
-                    { icon: <Shield size={14} color="#0f766e" />, text: 'GST Registered', sub: '07AAKCM4036B1ZS' },
-                    { icon: <Award size={14} color="#0f766e" />, text: 'Govt. Verified', sub: 'Pvt. Ltd. Company' },
-                    { icon: <CheckCircle size={14} color="#0f766e" />, text: 'Secure & Trusted', sub: 'Healthcare Standards' },
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {item.icon}
-                      <div>
-                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#0f766e' }}>{item.text}</div>
-                        <div style={{ fontSize: '10px', color: '#5eada6', fontWeight: '500' }}>{item.sub}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ padding: '34px 36px' }}>
+                
+                <div style={{ padding: '48px' }}>
                   <ContactForm />
                 </div>
-              </div>
+
+                <div style={{ background: '#f8fafc', padding: '24px 48px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+                   {[{ icon: <Shield size={16} />, text: 'Encrypted' }, { icon: <Clock size={16} />, text: '24/7 Active' }, { icon: <CheckCircle size={16} />, text: 'Verified' }].map((item, i) => (
+                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px', fontWeight: '700' }}>
+                       {item.icon} {item.text}
+                     </div>
+                   ))}
+                </div>
+              </motion.div>
+
             </div>
           </div>
         </section>
-
-        {/* CTA Footer */}
-        {/* <section style={{ background:'linear-gradient(135deg, #042f2e, #0f766e)', padding:'58px 24px', textAlign:'center' }}>
-          <div style={{ maxWidth:'660px', margin:'0 auto' }}>
-            <Heart size={30} color="#5eefea" fill="#5eefea" style={{ marginBottom:'13px' }}/>
-            <h2 style={{ fontFamily:"'Lora', serif", fontSize:'1.85rem', color:'white', margin:'0 0 10px', fontWeight:'600' }}>Your Health Is Our Priority</h2>
-            <p style={{ color:'rgba(255,255,255,0.62)', fontSize:'15px', margin:'0 0 28px', lineHeight:1.75 }}>
-              Whether it's a routine consultation or a complex medical procedure, MedicwayCare is with you every step of the journey.
-            </p>
-            <div style={{ display:'flex', gap:'13px', justifyContent:'center', flexWrap:'wrap' }}>
-              <a href="https://wa.me/919354799090" target="_blank" rel="noopener noreferrer"
-                style={{ display:'flex', alignItems:'center', gap:'8px', background:'#22c55e', color:'white', padding:'13px 24px', borderRadius:'50px', textDecoration:'none', fontWeight:'700', fontSize:'14px', boxShadow:'0 6px 20px rgba(34,197,94,0.4)', transition:'transform 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
-                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>
-                <WhatsappIcon/> Chat on WhatsApp
-              </a>
-              <a href="tel:+919354799090"
-                style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(255,255,255,0.11)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.22)', color:'white', padding:'13px 24px', borderRadius:'50px', textDecoration:'none', fontWeight:'700', fontSize:'14px', transition:'background 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.2)'}
-                onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.11)'}>
-                <Phone size={16}/> Call Us Now
-              </a>
-            </div>
-          </div>
-        </section> */}
-
       </div>
     </>
   );
